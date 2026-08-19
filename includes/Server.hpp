@@ -1,0 +1,43 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: juan-her <juan-her@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/08/15 16:23:59 by juan-her          #+#    #+#             */
+/*   Updated: 2026/08/19 18:45:48 by juan-her         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#pragma once
+
+#include <string>
+#include <vector>
+#include <map>
+#include <poll.h>
+#include "Client.hpp"
+#include "Channel.hpp"
+
+
+class Server
+{
+		private:
+			int							_serverSocket;
+			int							_port;
+			std::string					_password;
+			std::vector<struct pollfd>	_fds; 
+			std::map<int, Client*>		_clients;
+			std::map<std::string, Channel*> _channels;
+			
+		public:
+			Server(int port, const std::string &password);
+			~Server();
+			void start();
+			void acceptClient();
+			void handleClient(int fd);
+			void removeClient(int fd);
+			void processCommand(Client *client, const std::string &cmd);
+			Channel* getOrCreateChannel(const std::string &name);
+};
+
