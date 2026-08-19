@@ -6,7 +6,7 @@
 /*   By: lde-medi <lde-medi@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/19 15:05:13 by juan-her          #+#    #+#             */
-/*   Updated: 2026/08/19 22:22:25 by lde-medi         ###   ########.fr       */
+/*   Updated: 2026/08/19 23:12:19 by lde-medi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,9 @@ void Server::handleClient(int fd)
 	while ((pos = client->buffer.find("\n")) != std::string::npos)
 	{
 		std::string cmd = client->buffer.substr(0, pos);
-		client->buffer.erase(0, pos + 2);
+		client->buffer.erase(0, pos + 1);
+		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
+			cmd.erase(cmd.size() - 1);
 		processCommand(client, cmd);
 	}
 }
@@ -146,11 +148,15 @@ void Server::processCommand(Client *client, const std::string &cmd)
 	if (p_cmd._cmd == "PASS")
 	{
 		if (p_cmd._args[0] == _password)
-			send(client->fd, "Password OK\n", 12, 0);
+			send(client->fd, "Password OK\r\n", 13, 0);
+		else
+			send(client->fd, "Password incorrect\r\n", 21, 0);
 	}
 	else if (p_cmd._cmd == "NICK")
 	{
 		client->nickname = p_cmd._args[0];
+		std::string reply = "Now talking as " + client->nickname + "\r\n";
+		send(client->fd, reply.c_str(), reply.size(), 0);
 	}
 	else if (p_cmd._cmd == "USER")
 	{
