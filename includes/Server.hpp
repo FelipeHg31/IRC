@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: juan-her <juan-her@student.42madrid.com    +#+  +:+       +#+        */
+/*   By: lde-medi <lde-medi@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/15 16:23:59 by juan-her          #+#    #+#             */
-/*   Updated: 2026/08/19 18:45:48 by juan-her         ###   ########.fr       */
+/*   Updated: 2026/08/19 21:32:38 by lde-medi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,10 @@
 #include <vector>
 #include <map>
 #include <poll.h>
-#include "Client.hpp"
-#include "Channel.hpp"
 
+class Command;
+class Client;
+class Channel;
 
 class Server
 {
@@ -39,5 +40,6 @@ class Server
 			void removeClient(int fd);
 			void processCommand(Client *client, const std::string &cmd);
 			Channel* getOrCreateChannel(const std::string &name);
+			Command	parseLine(std::string line);
 };
 

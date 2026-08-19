@@ -3,17 +3,17 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: juan-her <juan-her@student.42madrid.com    +#+  +:+       +#+         #
+#    By: lde-medi <lde-medi@student.42madrid.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/08/15 15:48:49 by juan-her          #+#    #+#              #
-#    Updated: 2026/08/15 17:55:33 by juan-her         ###   ########.fr        #
+#    Updated: 2026/08/19 21:35:58 by lde-medi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ft_irc
 CXX = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes -g3
-SRCS =	src/Server.cpp src/Client.cpp src/Channel.cpp src/States.cpp main.cpp
+SRCS =	src/Server.cpp src/Client.cpp src/Channel.cpp src/Command.cpp main.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 GREEN = \033[0;32m

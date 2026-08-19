@@ -3,14 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: juan-her <juan-her@student.42madrid.com    +#+  +:+       +#+        */
+/*   By: lde-medi <lde-medi@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/19 15:05:13 by juan-her          #+#    #+#             */
-/*   Updated: 2026/08/19 22:45:59 by juan-her         ###   ########.fr       */
+/*   Updated: 2026/08/19 23:15:53 by lde-medi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
+#include <Server.hpp>
+#include <Command.hpp>
+#include <Client.hpp>
+#include <Channel.hpp>
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -105,8 +108,8 @@ void Server::handleClient(int fd)
 	buffer[bytes] = '\0';
 	Client *client = _clients[fd];
 	client->buffer += buffer;
-size_t pos;
-	while ((pos = client->buffer.find('\n')) != std::string::npos)
+	size_t pos;
+	while ((pos = client->buffer.find("\n")) != std::string::npos)
 	{
 		std::string cmd = client->buffer.substr(0, pos);
 		client->buffer.erase(0, pos + 1);
@@ -123,36 +126,47 @@ Channel* Server::getOrCreateChannel(const std::string &name)
 	return _channels[name];
 }
 
+Command	Server::parseLine(std::string line)
+{
+	std::istringstream iss(line);
+	std::string	token;
+	Command	cmd;
+	while (iss >> token)
+	{
+		if (cmd._cmd.empty())
+			cmd._cmd = token;
+		else
+			cmd._args.push_back(token);
+	}
+	return (cmd);
+}
+
 void Server::processCommand(Client *client, const std::string &cmd)
 {
-	std::istringstream iss(cmd);
-	std::string command;
-	iss >> command;
+	Command	p_cmd = parseLine(cmd);
 
-	if (command == "PASS")
+	if (p_cmd._cmd == "PASS")
 	{
-		std::string pass;
-		iss >> pass;
-		if (pass == _password)
+		if (p_cmd._args[0] == _password)
 			send(client->fd, "Password OK\r\n", 13, 0);
 		else
 			send(client->fd, "Password incorrect\r\n", 21, 0);
 	}
-	else if (command == "NICK")
+	else if (p_cmd._cmd == "NICK")
 	{
-		iss >> client->nickname;
+		client->nickname = p_cmd._args[0];
 		std::string reply = "Now talking as " + client->nickname + "\r\n";
 		send(client->fd, reply.c_str(), reply.size(), 0);
 	}
-	else if (command == "USER")
+	else if (p_cmd._cmd == "USER")
 	{
-		iss >> client->username;
+		client->username = p_cmd._args[0];
 		client->registered = true;
 	}
-	else if (command == "JOIN")
+	else if (p_cmd._cmd == "JOIN")
 	{
 		std::string channelName;
-		iss >> channelName;
+		channelName = p_cmd._args[0];
 
 		Channel *channel = getOrCreateChannel(channelName);
 		channel->addClient(client);
@@ -160,13 +174,13 @@ void Server::processCommand(Client *client, const std::string &cmd)
 		std::string msg = client->nickname + " joined " + channelName + "\n";
 		channel->broadcast(msg, client);
 	}
-	else if (command == "PRIVMSG")
+	else if (p_cmd._cmd == "PRIVMSG")
 	{
 		std::string target;
-		iss >> target;
+		target = p_cmd._args[0];
 
 		std::string msg;
-		getline(iss, msg);
+		msg = p_cmd._args[0];
 
 		if (_channels.find(target) != _channels.end())
 		{
