@@ -23,6 +23,7 @@ class Server
 		public:
 			Server(int port, const std::string &password);
 			~Server();
+			bool init();
 			void start();
 			void acceptClient();
 			void handleClient(int fd);

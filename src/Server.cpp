@@ -10,6 +10,11 @@
 #include <arpa/inet.h>
 
 Server::Server(int port, const std::string &password): _port(port), _password(password)
+{}
+
+Server::~Server() {}
+
+bool Server::init()
 {
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -20,21 +25,35 @@ Server::Server(int port, const std::string &password): _port(port), _password(pa
 	addr.sin_port = htons(_port);
 	addr.sin_addr.s_addr = INADDR_ANY;
 
-	bind(_serverSocket, (sockaddr*)&addr, sizeof(addr));
-	listen(_serverSocket, 10);
+	if (bind(_serverSocket, (sockaddr*)&addr, sizeof(addr)) < 0)
+	{
+		std::cerr << "Error: bind() failed" << std::endl;
+		return false;
+	}
 
-	fcntl(_serverSocket, F_SETFL, O_NONBLOCK);
+	if (listen(_serverSocket, 10) < 0)
+	{
+		std::cerr << "Error: listen() failed" << std::endl;
+		return false;
+	}
+
+	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) < 0)
+	{
+		std::cerr << "Error: fcntl() failed" << std::endl;
+		return false;
+	}
 
 	pollfd p;
 	p.fd = _serverSocket;
 	p.events = POLLIN;
 	_fds.push_back(p);
+	return true;
 }
-
-Server::~Server() {}
 
 void Server::start()
 {
+	if (!init())
+		return ;
 	while (true)
 	{
 		poll(&_fds[0], _fds.size(), -1);
