@@ -152,12 +152,10 @@ void Server::processCommand(Client *client, const std::string &cmd)
 {
 	Command	p_cmd = parseLine(cmd);
 
+
 	if (p_cmd._cmd == "PASS")
 	{
-		if (p_cmd._args[0] == _password)
-			send(client->fd, "Password OK\r\n", 13, 0);
-		else
-			send(client->fd, "Password incorrect\r\n", 21, 0);
+		p_cmd.PASS(this, client, p_cmd._args);
 	}
 	else if (p_cmd._cmd == "NICK")
 	{

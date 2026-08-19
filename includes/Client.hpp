@@ -10,8 +10,9 @@ public:
 	std::string nickname;
 	std::string username;
 	std::string buffer;
+	bool passGiven;
 	bool registered;
-
+	
 	Client(int fd);
 	~Client();
 };

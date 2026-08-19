@@ -1,9 +1,10 @@
 
 NAME = ft_irc
 CXX = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes -g3
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes -g3 -MMD -MP
 SRCS =	src/Server.cpp src/Client.cpp src/Channel.cpp src/Command.cpp main.cpp
 OBJS = $(SRCS:.cpp=.o)
+DEPS = $(SRCS:.cpp=.d)
 
 GREEN = \033[0;32m
 DEFAULT = \033[0m
@@ -18,7 +19,7 @@ $(NAME): $(OBJS)
 	@$(CXX) $(CFLAGS) -c $< -o $@
 
 clean:
-	@rm -f $(OBJS)
+	@rm -f $(OBJS) $(DEPS)
 	@echo "$(GREEN)$(NAME) obj files deleted!$(DEFAULT)"
 
 fclean: clean
@@ -29,5 +30,7 @@ re: fclean all
 
 run: all
 	@./$(NAME)
+
+-include $(DEPS)
 
 .PHONY: all clean fclean re

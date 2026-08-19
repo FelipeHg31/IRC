@@ -15,12 +15,12 @@ class Server
 		private:
 			int							_serverSocket;
 			int							_port;
-			std::string					_password;
 			std::vector<struct pollfd>	_fds; 
 			std::map<int, Client*>		_clients;
 			std::map<std::string, Channel*> _channels;
 			
 		public:
+			std::string					_password;
 			Server(int port, const std::string &password);
 			~Server();
 			bool init();
