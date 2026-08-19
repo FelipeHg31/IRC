@@ -6,7 +6,7 @@
 /*   By: juan-her <juan-her@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/19 15:05:13 by juan-her          #+#    #+#             */
-/*   Updated: 2026/08/19 17:26:44 by juan-her         ###   ########.fr       */
+/*   Updated: 2026/08/19 22:45:59 by juan-her         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,11 +105,13 @@ void Server::handleClient(int fd)
 	buffer[bytes] = '\0';
 	Client *client = _clients[fd];
 	client->buffer += buffer;
-	size_t pos;
-	while ((pos = client->buffer.find("\r\n")) != std::string::npos)
+size_t pos;
+	while ((pos = client->buffer.find('\n')) != std::string::npos)
 	{
 		std::string cmd = client->buffer.substr(0, pos);
-		client->buffer.erase(0, pos + 2);
+		client->buffer.erase(0, pos + 1);
+		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
+			cmd.erase(cmd.size() - 1);
 		processCommand(client, cmd);
 	}
 }
@@ -132,11 +134,15 @@ void Server::processCommand(Client *client, const std::string &cmd)
 		std::string pass;
 		iss >> pass;
 		if (pass == _password)
-			send(client->fd, "Password OK\n", 12, 0);
+			send(client->fd, "Password OK\r\n", 13, 0);
+		else
+			send(client->fd, "Password incorrect\r\n", 21, 0);
 	}
 	else if (command == "NICK")
 	{
 		iss >> client->nickname;
+		std::string reply = "Now talking as " + client->nickname + "\r\n";
+		send(client->fd, reply.c_str(), reply.size(), 0);
 	}
 	else if (command == "USER")
 	{
