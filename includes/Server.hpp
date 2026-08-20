@@ -30,6 +30,5 @@ class Server
 			void removeClient(int fd);
 			void processMessage(Client *client, const std::string &cmd);
 			Channel* getOrCreateChannel(const std::string &name);
-			Message	parseLine(std::string line);
 };
 
