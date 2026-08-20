@@ -16,6 +16,7 @@ class CommandHandler
 
 		static void PASS(Server *server, Client *client, const std::vector<std::string> &args);
 		static void ECHO(Server *server, Client *client, const std::vector<std::string> &args);
+		static void NICK(Server *server, Client *client, const std::vector<std::string> &args);
 	public:
 		CommandHandler();
 		CommandHandler(const CommandHandler &rhs);

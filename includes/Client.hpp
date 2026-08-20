@@ -10,7 +10,7 @@ class Client
 {
 	private:
 		std::string	_outBuffer;
-		std::string _inBuffer;
+        std::string _inBuffer;
 	public:
 		int fd;
 		std::set<Channel *>	_channels;

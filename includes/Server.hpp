@@ -17,8 +17,8 @@ class Server
 			int							_serverSocket;
 			int							_port;
 			std::vector<struct pollfd>	_fds; 
-			std::map<int, Client*>		_clients;
-			std::map<std::string, Channel*> _channels;
+			std::map<int, Client *>		_clients;
+			std::map<std::string, Channel *> _channels;
 			
 		public:
 			CommandHandler				_cmdHandler;
@@ -33,7 +33,8 @@ class Server
 			void removeClient(int fd);
 			void queueMessage(Client *client, const std::string &msg);
 			void processMessage(Client *client, const std::string &cmd);
-			Channel* getOrCreateChannel(const std::string &name);
+			Channel	*getOrCreateChannel(const std::string &name);
+			Client *getClientByNick(const std::string &nick);
 			std::string formatError(std::string code, const std::string &target, const std::string &msg) const;
 };
 

@@ -21,6 +21,7 @@ CommandHandler::~CommandHandler() {}
 void CommandHandler::populateMap()
 {
 	_commands["PASS"] = &CommandHandler::PASS;
+	_commands["NICK"] = &CommandHandler::NICK;
 	_commands["ECHO"] = &CommandHandler::ECHO;
 }
 
@@ -55,5 +56,24 @@ void CommandHandler::PASS(Server *server, Client *client, const std::vector<std:
 	if (args[0] == server->_password)
 	{
 		client->_passGiven = true;
+	}
+}
+
+void CommandHandler::NICK(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	if (args.size() != 1 || args[0].empty())
+	{
+		server->queueMessage(client, server->formatError("461", client->_nickname.empty() ? "*" : client->_nickname, "NICK :Syntax error"));
+		return;
+	}
+	if (args[0].size() > 9)
+	{
+		server->queueMessage(client, server->formatError("432", client->_nickname.empty() ? "*" : client->_nickname, args[0] + " :Nickname too long, max 9 characters"));
+		return;
+	}
+	if (server->getClientByNick(args[0]))
+	{
+		server->queueMessage(client, server->formatError("433", client->_nickname.empty() ? "*" : client->_nickname, args[0] + " :Nickname already in use"));
+		return;
 	}
 }
