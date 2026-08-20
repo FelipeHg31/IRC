@@ -46,40 +46,40 @@ void CommandHandler::PASS(Server *server, Client *client, const std::vector<std:
 {
 	if (client->_passGiven)
 	{
-		server->queueMessage(client, server->formatError("462", client->_nickname.empty() ? "*" : client->_nickname, ":Connection already registered"));
+		server->queueMessage(client, server->formatError("462", client->getNick().empty() ? "*" : client->getNick(), ":Connection already registered"));
 		return;
 	}
 	if (args.size() != 1)
 	{
-		server->queueMessage(client, server->formatError("461", client->_nickname.empty() ? "*" : client->_nickname, " PASS :Syntax error"));
+		server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), " PASS :Syntax error"));
 		return;
 	}
-	if (args[0] == server->getPass() && client->_nickname.empty() && client->_username.empty())
+	if (args[0] == server->getPass() && client->getNick().empty() && client->getUser().empty())
 	{
 		client->_passGiven = true;
 	}
 	else
-		server->queueMessage(client, server->formatError("462", client->_nickname.empty() ? "*" : client->_nickname, " :Connection already registered"));
+		server->queueMessage(client, server->formatError("462", client->getNick().empty() ? "*" : client->getNick(), " :Connection already registered"));
 }
 
 void CommandHandler::NICK(Server *server, Client *client, const std::vector<std::string> &args)
 {
 	if (args.size() != 1 || args[0].empty())
 	{
-		server->queueMessage(client, server->formatError("461", client->_nickname.empty() ? "*" : client->_nickname, " NICK :Syntax error"));
+		server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), " NICK :Syntax error"));
 		return;
 	}
 	if (args[0].size() > 9)
 	{
-		server->queueMessage(client, server->formatError("432", client->_nickname.empty() ? "*" : client->_nickname, args[0] + " :Nickname too long, max 9 characters"));
+		server->queueMessage(client, server->formatError("432", client->getNick().empty() ? "*" : client->getNick(), args[0] + " :Nickname too long, max 9 characters"));
 		return;
 	}
 	if (server->getClientByNick(args[0]))
 	{
-		server->queueMessage(client, server->formatError("433", client->_nickname.empty() ? "*" : client->_nickname, args[0] + " :Nickname already in use"));
+		server->queueMessage(client, server->formatError("433", client->getNick().empty() ? "*" : client->getNick(), args[0] + " :Nickname already in use"));
 		return;
 	}
-	client->_nickname = args[0];
+	client->setNick(args[0]);
 	server->tryRegistration(client);
 	server->queueMessage(client, ":prefijoprovi!sional NICK :" + args[0] + "\r\n");
 	// aqui hariamos broadcast a todos los clientes de los canales en los que este client este metido
@@ -90,12 +90,12 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 {
 	if (!client->_registered)
 	{
-		server->queueMessage(client, server->formatError("451", client->_nickname.empty() ? "*" : client->_nickname, " :Connection not registered"));
+		server->queueMessage(client, server->formatError("451", client->getNick().empty() ? "*" : client->getNick(), " :Connection not registered"));
 		return;
 	}
 	if (args.size() < 1)
 	{
-		server->queueMessage(client, server->formatError("461", client->_nickname.empty() ? "*" : client->_nickname, " JOIN :Syntax error"));
+		server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), " JOIN :Syntax error"));
 		return;
 	}
 

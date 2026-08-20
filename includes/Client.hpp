@@ -11,15 +11,20 @@ class Client
 	private:
 		std::string	_outBuffer;
         std::string _inBuffer;
-	public:
-		int fd;
-		std::set<Channel *>	_channels;
 		std::string _nickname;
 		std::string _username;
+		std::set<Channel *>	_channels;
+	public:
+		int fd;
 
 		bool _passGiven;
 		bool _registered;
 
+		const std::string &getNick() const;
+		const std::string &getUser() const;
+		void setNick(const std::string &nick);
+		void setUser(const std::string &user);
+		std::set<Channel *> &getChannels();
 		std::string	&getInBuf();
 		std::string	&getOutBuf();
 

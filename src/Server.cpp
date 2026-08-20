@@ -208,7 +208,7 @@ void	Server::tryRegistration(Client	*client)
 {
 	if (client->_registered)
 		return;
-	if (client->_nickname.empty() || client->_username.empty())
+	if (client->getNick().empty() || client->getUser().empty())
 		return;
 	if (!client->_passGiven)
 		return;
@@ -221,7 +221,7 @@ Client *Server::getClientByNick(const std::string &nick)
 	std::map<int, Client *>::iterator it;
 	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
-		if (it->second->_nickname == nick)
+		if (it->second->getNick() == nick)
 			return (it->second);
 	}
 	return (NULL);

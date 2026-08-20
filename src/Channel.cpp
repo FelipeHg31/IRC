@@ -17,7 +17,7 @@ std::vector<Client *> &Channel::getClients() { return _clients; }
 void Channel::addClient(Client *client)
 {
 	_clients.push_back(client);
-	client->_channels.insert(this);
+	client->getChannels().insert(this);
 }
 
 void Channel::removeClient(Client *client)
