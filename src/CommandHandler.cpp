@@ -54,7 +54,7 @@ void CommandHandler::PASS(Server *server, Client *client, const std::vector<std:
 		server->queueMessage(client, server->formatError("461", client->_nickname.empty() ? "*" : client->_nickname, " PASS :Syntax error"));
 		return;
 	}
-	if (args[0] == server->_password && client->_nickname.empty() && client->_username.empty())
+	if (args[0] == server->getPass() && client->_nickname.empty() && client->_username.empty())
 	{
 		client->_passGiven = true;
 	}

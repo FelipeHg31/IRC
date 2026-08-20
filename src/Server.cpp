@@ -16,6 +16,8 @@ Server::Server(int port, const std::string &password): _port(port), _password(pa
 }
 Server::~Server() {}
 
+const std::string &Server::getPass() const { return _password; }
+
 bool Server::init()
 {
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -197,7 +199,8 @@ void Server::handlePollIn(int fd)
 		client->getInBuf().erase(0, pos + 1);
 		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
 			cmd.erase(cmd.size() - 1);
-		processMessage(client, cmd);
+		Message	p_cmd(cmd);
+		_cmdHandler.execute(p_cmd.getCmd(), this, client, p_cmd.getArgs());
 	}
 }
 
@@ -240,13 +243,6 @@ Channel *Server::addNewChannel(const std::string &name)
 	_channels[name] = out;
 
 	return out;
-}
-
-void Server::processMessage(Client *client, const std::string &cmd)
-{
-	Message	p_cmd(cmd);
-
-	_cmdHandler.execute(p_cmd.getCmd(), this, client, p_cmd.getArgs());
 }
 
 std::string Server::formatError(std::string code, const std::string &target, const std::string &msg) const

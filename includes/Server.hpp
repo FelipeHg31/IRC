@@ -19,10 +19,11 @@ class Server
 			std::vector<struct pollfd>	_fds; 
 			std::map<int, Client *>		_clients;
 			std::map<std::string, Channel *> _channels;
+			std::string					_password;
+			CommandHandler				_cmdHandler;
 			
 		public:
-			CommandHandler				_cmdHandler;
-			std::string					_password;
+			const std::string &getPass() const;
 			Server(int port, const std::string &password);
 			~Server();
 			bool init();
@@ -32,8 +33,8 @@ class Server
 			void handlePollOut(int fd, std::vector<int> &toDelete);
 			void removeClient(int fd);
 			void queueMessage(Client *client, const std::string &msg);
-			void processMessage(Client *client, const std::string &cmd);
 			void tryRegistration(Client *client);
+			void execCommand(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args);
 			Channel	*getChannel(const std::string &name);
 			Channel	*addNewChannel(const std::string &name);
 			Client *getClientByNick(const std::string &nick);
