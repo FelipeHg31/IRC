@@ -210,45 +210,5 @@ void Server::processMessage(Client *client, const std::string &cmd)
 {
 	Message	p_cmd(cmd);
 
-
-	if (p_cmd.getCmd() == "PASS")
-	{
-		p_cmd.PASS(this, client, p_cmd.getArgs());
-	}
-	else if (p_cmd.getCmd() == "NICK")
-	{
-		client->_nickname = p_cmd.getArgs()[0];
-		std::string reply = "Now talking as " + client->_nickname + "\r\n";
-		send(client->fd, reply.c_str(), reply.size(), 0);
-	}
-	else if (p_cmd.getCmd() == "USER")
-	{
-		client->_username = p_cmd.getArgs()[0];
-		client->_registered = true;
-	}
-	else if (p_cmd.getCmd() == "JOIN")
-	{
-		std::string channelName;
-		channelName = p_cmd.getArgs()[0];
-
-		Channel *channel = getOrCreateChannel(channelName);
-		channel->addClient(client);
-
-		std::string msg = client->_nickname + " joined " + channelName + "\n";
-		channel->broadcast(msg, client);
-	}
-	else if (p_cmd.getCmd() == "PRIVMSG")
-	{
-		std::string target;
-		target = p_cmd.getArgs()[0];
-
-		std::string msg;
-		msg = p_cmd.getArgs()[0];
-
-		if (_channels.find(target) != _channels.end())
-		{
-			std::string fullMsg = client->_nickname + ": " + msg + "\n";
-			_channels[target]->broadcast(fullMsg, client);
-		}
-	}
+	_cmdHandler.execute(p_cmd.getCmd(), this, client, p_cmd.getArgs());
 }

@@ -20,5 +20,4 @@ class Message
 		~Message();
 		const std::string	&getCmd() const;
 		const std::vector<std::string>	&getArgs() const;
-		void PASS(Server *server, Client *client, std::vector<std::string> args);
 };

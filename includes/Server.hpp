@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <CommandHandler.hpp>
 #include <poll.h>
 
 class Message;
@@ -20,6 +21,7 @@ class Server
 			std::map<std::string, Channel*> _channels;
 			
 		public:
+			CommandHandler				_cmdHandler;
 			std::string					_password;
 			Server(int port, const std::string &password);
 			~Server();

@@ -43,15 +43,3 @@ const std::string &Message::getCmd() const { return _cmd; }
 
 const std::vector<std::string> &Message::getArgs() const { return _args; } 
 
-void Message::PASS(Server *server, Client *client, std::vector<std::string> args)
-{
-	if (client->_registered)
-		server->queueMessage(client, "already registered error\r\n");
-	else
-	{
-		if (args[0] == server->_password)
-			server->queueMessage(client, "Password OK\r\n");
-		else
-			server->queueMessage(client, "Password incorrect\r\n");
-	}
-}
