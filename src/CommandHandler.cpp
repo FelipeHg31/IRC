@@ -53,10 +53,12 @@ void CommandHandler::PASS(Server *server, Client *client, const std::vector<std:
 		server->queueMessage(client, server->formatError("461", client->_nickname.empty() ? "*" : client->_nickname, "PASS :Syntax error"));
 		return;
 	}
-	if (args[0] == server->_password)
+	if (args[0] == server->_password && client->_nickname.empty() && client->_username.empty())
 	{
 		client->_passGiven = true;
 	}
+	else
+		server->queueMessage(client, server->formatError("462", client->_nickname.empty() ? "*" : client->_nickname, ":Connection already registered"));
 }
 
 void CommandHandler::NICK(Server *server, Client *client, const std::vector<std::string> &args)
@@ -76,4 +78,8 @@ void CommandHandler::NICK(Server *server, Client *client, const std::vector<std:
 		server->queueMessage(client, server->formatError("433", client->_nickname.empty() ? "*" : client->_nickname, args[0] + " :Nickname already in use"));
 		return;
 	}
+	client->_nickname = args[0];
+	server->queueMessage(client, ":prefijoprovi!sional NICK :" + args[0] + "\r\n");
+	// aqui hariamos broadcast a todos los clientes de los canales en los que este client este metido
+	// y aqui un tryregistrion (intentara' ver si ya tiene user y nick puestos y password y si tiene todo se conecta de forma oficial)
 }
