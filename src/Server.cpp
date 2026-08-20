@@ -199,13 +199,6 @@ void Server::handlePollIn(int fd)
 	}
 }
 
-Channel *Server::getOrCreateChannel(const std::string &name)
-{
-	if (_channels.find(name) == _channels.end())
-		_channels[name] = new Channel(name);
-	return _channels[name];
-}
-
 Client *Server::getClientByNick(const std::string &nick)
 {
 	std::map<int, Client *>::iterator it;
@@ -215,6 +208,24 @@ Client *Server::getClientByNick(const std::string &nick)
 			return (it->second);
 	}
 	return (NULL);
+}
+
+Channel *Server::getChannel(const std::string &name)
+{
+	std::map<std::string, Channel *>::iterator	it;
+	it = _channels.find(name);
+	if (it != _channels.end())
+		return it->second;
+	else
+		return NULL;
+}
+
+Channel *Server::addNewChannel(const std::string &name)
+{
+	Channel	*out = new Channel(name);
+	_channels[name] = out;
+
+	return out;
 }
 
 void Server::processMessage(Client *client, const std::string &cmd)

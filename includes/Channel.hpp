@@ -15,8 +15,11 @@ public:
 	Channel(const std::string &name);
 	~Channel();
 
-	std::string getName() const;
+	const std::string &getName() const;
+	std::vector<Client *> &getClients();
+	Client *getClientByFd(int fd);
 	void addClient(Client *client);
+	void removeClient(Client *client);
 	void broadcast(const std::string &msg, Client *sender);
 };
 
