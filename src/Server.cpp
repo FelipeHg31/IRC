@@ -171,7 +171,7 @@ void Server::queueMessage(Client *client, const std::string &msg)
 	client->getOutBuf() += msg;
 	for (size_t i = 0; i < _fds.size(); i++)
 	{
-		if (_fds[i].fd == client->fd)
+		if (_fds[i].fd == client->getFd())
 		{
 			_fds[i].events |= POLLOUT;
 			break;
@@ -206,13 +206,13 @@ void Server::handlePollIn(int fd)
 
 void	Server::tryRegistration(Client	*client)
 {
-	if (client->_registered)
+	if (client->isRegistered())
 		return;
 	if (client->getNick().empty() || client->getUser().empty())
 		return;
-	if (!client->_passGiven)
+	if (!client->isPassGiven())
 		return;
-	client->_registered = true;
+	client->setRegistered();
 	//welcome
 }
 

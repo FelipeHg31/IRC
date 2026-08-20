@@ -44,7 +44,7 @@ void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std:
 
 void CommandHandler::PASS(Server *server, Client *client, const std::vector<std::string> &args)
 {
-	if (client->_passGiven)
+	if (client->isPassGiven())
 	{
 		server->queueMessage(client, server->formatError("462", client->getNick().empty() ? "*" : client->getNick(), ":Connection already registered"));
 		return;
@@ -56,7 +56,7 @@ void CommandHandler::PASS(Server *server, Client *client, const std::vector<std:
 	}
 	if (args[0] == server->getPass() && client->getNick().empty() && client->getUser().empty())
 	{
-		client->_passGiven = true;
+		client->setPassGiven();
 	}
 	else
 		server->queueMessage(client, server->formatError("462", client->getNick().empty() ? "*" : client->getNick(), " :Connection already registered"));
@@ -88,7 +88,7 @@ void CommandHandler::NICK(Server *server, Client *client, const std::vector<std:
 
 void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std::string> &args)
 {
-	if (!client->_registered)
+	if (!client->isRegistered())
 	{
 		server->queueMessage(client, server->formatError("451", client->getNick().empty() ? "*" : client->getNick(), " :Connection not registered"));
 		return;
@@ -101,7 +101,7 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 
 	Channel *chan = server->getChannel(args[0]);
 	// implementar en futuro lo de JOIN canal1,canal2 y que los canales empiezan siempre con #
-	if (chan && !chan->getClientByFd(client->fd))
+	if (chan && !chan->getClientByFd(client->getFd()))
 	{
 		chan->addClient(client);
 	}

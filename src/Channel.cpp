@@ -40,7 +40,7 @@ Client *Channel::getClientByFd(int fd)
 	std::vector<Client *>::iterator it;
 	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
-		if ((*it)->fd == fd)
+		if ((*it)->getFd() == fd)
 			return *it;
 	}
 	return NULL;
@@ -51,6 +51,6 @@ void Channel::broadcast(const std::string &msg, Client *sender)
 	for (size_t i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i] != sender)
-			send(_clients[i]->fd, msg.c_str(), msg.size(), 0);
+			send(_clients[i]->getFd(), msg.c_str(), msg.size(), 0);
 	}
 }

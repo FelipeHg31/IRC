@@ -9,21 +9,27 @@ class Channel;
 class Client
 {
 	private:
+		int _fd;
 		std::string	_outBuffer;
         std::string _inBuffer;
 		std::string _nickname;
 		std::string _username;
 		std::set<Channel *>	_channels;
-	public:
-		int fd;
-
 		bool _passGiven;
 		bool _registered;
+	public:
+		const int &getFd() const;
 
 		const std::string &getNick() const;
 		const std::string &getUser() const;
 		void setNick(const std::string &nick);
 		void setUser(const std::string &user);
+
+		bool isPassGiven() const;
+		bool isRegistered() const;
+		void setPassGiven();
+		void setRegistered();
+
 		std::set<Channel *> &getChannels();
 		std::string	&getInBuf();
 		std::string	&getOutBuf();
