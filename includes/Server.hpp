@@ -26,8 +26,10 @@ class Server
 			bool init();
 			void start();
 			void acceptClient();
-			void handleClient(int fd);
+			void handlePollIn(int fd);
+			void handlePollOut(int fd, std::vector<int> &toDelete);
 			void removeClient(int fd);
+			void queueMessage(Client *client, const std::string &msg);
 			void processMessage(Client *client, const std::string &cmd);
 			Channel* getOrCreateChannel(const std::string &name);
 };

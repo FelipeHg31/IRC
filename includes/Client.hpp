@@ -5,16 +5,22 @@
 
 class Client
 {
-public:
-	int fd;
-	std::string nickname;
-	std::string username;
-	std::string buffer;
-	bool passGiven;
-	bool registered;
-	
-	Client(int fd);
-	~Client();
+	private:
+		std::string	_outBuffer;
+		std::string _inBuffer;
+	public:
+		int fd;
+		std::string _nickname;
+		std::string _username;
+
+		bool _passGiven;
+		bool _registered;
+
+		std::string	&getInBuf();
+		std::string	&getOutBuf();
+
+		Client(int fd);
+		~Client();
 };
 
 

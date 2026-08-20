@@ -56,29 +56,89 @@ void Server::start()
 		return ;
 	while (true)
 	{
-		poll(&_fds[0], _fds.size(), -1);
+		int ret = poll(&_fds[0], _fds.size(), -1);
+		if (ret < 0)
+		{
+			// decidir como manejar error de poll
+			continue;
+		}
+
+		std::vector<int> toDelete;
 
 		for (size_t i = 0; i < _fds.size(); i++)
 		{
-			if (_fds[i].revents & POLLIN)
+			int fd = _fds[i].fd;
+			short revents = _fds[i].revents;
+
+			if (revents == 0)
+				continue;
+
+			if (revents & (POLLHUP | POLLERR | POLLNVAL))
 			{
-				if (_fds[i].fd == _serverSocket)
+				toDelete.push_back(fd);
+				continue;
+			}
+			if (fd == _serverSocket)
+	   		{
+				if (revents & POLLIN)
 					acceptClient();
-				else
-					handleClient(_fds[i].fd);
+				continue;
+			}
+			if (revents & POLLIN)
+			{
+				handlePollIn(fd);
+			}
+			if (revents & POLLOUT)
+			{
+				handlePollOut(fd, toDelete);
 			}
 		}
+		for (size_t i = 0; i < toDelete.size(); i++)
+	  		removeClient(toDelete[i]);
 	}
+}
+
+void Server::handlePollOut(int fd, std::vector<int>	&toDelete)
+{
+    Client *client = _clients[fd];
+    int bytesSent = send(fd, client->getOutBuf().c_str(), client->getOutBuf().size(), 0);
+
+    if (bytesSent < 0)
+    {
+        toDelete.push_back(fd);
+        return;
+    }
+
+    client->getOutBuf().erase(0, bytesSent);
+
+    if (client->getOutBuf().empty())
+    {
+        for (size_t j = 0; j < _fds.size(); j++)
+        {
+            if (_fds[j].fd == fd)
+            {
+                _fds[j].events &= ~POLLOUT;
+                break;
+            }
+        }
+    }
 }
 
 void Server::acceptClient()
 {
 	int clientFd = accept(_serverSocket, NULL, NULL);
+
+	if (clientFd < 0)
+	{
+		std::cerr << "Error: accept() failed" << std::endl;
+		return;
+	}
 	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 
 	pollfd p;
 	p.fd = clientFd;
 	p.events = POLLIN;
+	p.revents = 0;
 	_fds.push_back(p);
 
 	_clients[clientFd] = new Client(clientFd);
@@ -102,7 +162,20 @@ void Server::removeClient(int fd)
 	}
 }
 
-void Server::handleClient(int fd)
+void Server::queueMessage(Client *client, const std::string &msg)
+{
+	client->getOutBuf() += msg;
+	for (size_t i = 0; i < _fds.size(); i++)
+	{
+		if (_fds[i].fd == client->fd)
+		{
+			_fds[i].events |= POLLOUT;
+			break;
+		}
+	}	
+}
+
+void Server::handlePollIn(int fd)
 {
 	char buffer[512];
 	int bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
@@ -114,12 +187,12 @@ void Server::handleClient(int fd)
 	}
 	buffer[bytes] = '\0';
 	Client *client = _clients[fd];
-	client->buffer += buffer;
+	client->getInBuf() += buffer;
 	size_t pos;
-	while ((pos = client->buffer.find("\n")) != std::string::npos)
+	while ((pos = client->getInBuf().find("\n")) != std::string::npos)
 	{
-		std::string cmd = client->buffer.substr(0, pos);
-		client->buffer.erase(0, pos + 1);
+		std::string cmd = client->getInBuf().substr(0, pos);
+		client->getInBuf().erase(0, pos + 1);
 		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
 			cmd.erase(cmd.size() - 1);
 		processMessage(client, cmd);
@@ -144,14 +217,14 @@ void Server::processMessage(Client *client, const std::string &cmd)
 	}
 	else if (p_cmd.getCmd() == "NICK")
 	{
-		client->nickname = p_cmd.getArgs()[0];
-		std::string reply = "Now talking as " + client->nickname + "\r\n";
+		client->_nickname = p_cmd.getArgs()[0];
+		std::string reply = "Now talking as " + client->_nickname + "\r\n";
 		send(client->fd, reply.c_str(), reply.size(), 0);
 	}
 	else if (p_cmd.getCmd() == "USER")
 	{
-		client->username = p_cmd.getArgs()[0];
-		client->registered = true;
+		client->_username = p_cmd.getArgs()[0];
+		client->_registered = true;
 	}
 	else if (p_cmd.getCmd() == "JOIN")
 	{
@@ -161,7 +234,7 @@ void Server::processMessage(Client *client, const std::string &cmd)
 		Channel *channel = getOrCreateChannel(channelName);
 		channel->addClient(client);
 
-		std::string msg = client->nickname + " joined " + channelName + "\n";
+		std::string msg = client->_nickname + " joined " + channelName + "\n";
 		channel->broadcast(msg, client);
 	}
 	else if (p_cmd.getCmd() == "PRIVMSG")
@@ -174,7 +247,7 @@ void Server::processMessage(Client *client, const std::string &cmd)
 
 		if (_channels.find(target) != _channels.end())
 		{
-			std::string fullMsg = client->nickname + ": " + msg + "\n";
+			std::string fullMsg = client->_nickname + ": " + msg + "\n";
 			_channels[target]->broadcast(fullMsg, client);
 		}
 	}

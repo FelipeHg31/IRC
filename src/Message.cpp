@@ -45,13 +45,13 @@ const std::vector<std::string> &Message::getArgs() const { return _args; }
 
 void Message::PASS(Server *server, Client *client, std::vector<std::string> args)
 {
-	if (client->registered)
-		send(client->fd, "already registered error\r\n", 28, 0);
+	if (client->_registered)
+		server->queueMessage(client, "already registered error\r\n");
 	else
 	{
 		if (args[0] == server->_password)
-			send(client->fd, "Password OK\r\n", 13, 0);
+			server->queueMessage(client, "Password OK\r\n");
 		else
-			send(client->fd, "Password incorrect\r\n", 21, 0);		
+			server->queueMessage(client, "Password incorrect\r\n");
 	}
 }
