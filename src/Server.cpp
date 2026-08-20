@@ -201,6 +201,18 @@ void Server::handlePollIn(int fd)
 	}
 }
 
+void	Server::tryRegistration(Client	*client)
+{
+	if (client->_registered)
+		return;
+	if (client->_nickname.empty() || client->_username.empty())
+		return;
+	if (!client->_passGiven)
+		return;
+	client->_registered = true;
+	//welcome
+}
+
 Client *Server::getClientByNick(const std::string &nick)
 {
 	std::map<int, Client *>::iterator it;

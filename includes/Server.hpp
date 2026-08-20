@@ -33,6 +33,7 @@ class Server
 			void removeClient(int fd);
 			void queueMessage(Client *client, const std::string &msg);
 			void processMessage(Client *client, const std::string &cmd);
+			void tryRegistration(Client *client);
 			Channel	*getChannel(const std::string &name);
 			Channel	*addNewChannel(const std::string &name);
 			Client *getClientByNick(const std::string &nick);

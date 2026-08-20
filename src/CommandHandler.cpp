@@ -80,6 +80,7 @@ void CommandHandler::NICK(Server *server, Client *client, const std::vector<std:
 		return;
 	}
 	client->_nickname = args[0];
+	server->tryRegistration(client);
 	server->queueMessage(client, ":prefijoprovi!sional NICK :" + args[0] + "\r\n");
 	// aqui hariamos broadcast a todos los clientes de los canales en los que este client este metido
 	// y aqui un tryregistrion (intentara' ver si ya tiene user y nick puestos y password y si tiene todo se conecta de forma oficial)
