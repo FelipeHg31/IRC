@@ -10,8 +10,10 @@
 #include <arpa/inet.h>
 
 Server::Server(int port, const std::string &password): _port(port), _password(password)
-{}
-
+{
+	if(port < 1024 || port > 49151)
+		throw(NoValidServer("Bad port"));
+}
 Server::~Server() {}
 
 bool Server::init()
