@@ -6,7 +6,7 @@
 #include <map>
 #include <poll.h>
 
-class Command;
+class Message;
 class Client;
 class Channel;
 
@@ -28,8 +28,8 @@ class Server
 			void acceptClient();
 			void handleClient(int fd);
 			void removeClient(int fd);
-			void processCommand(Client *client, const std::string &cmd);
+			void processMessage(Client *client, const std::string &cmd);
 			Channel* getOrCreateChannel(const std::string &name);
-			Command	parseLine(std::string line);
+			Message	parseLine(std::string line);
 };
 

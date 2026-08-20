@@ -7,11 +7,11 @@
 class Client;
 class Server;
 
-class Command
+class Message
 {
 	public:
-		Command();
-		~Command();
+		Message();
+		~Message();
 		std::string	_cmd;
 		std::vector<std::string>	_args;
 

@@ -1,5 +1,5 @@
 #include <Server.hpp>
-#include <Command.hpp>
+#include <Message.hpp>
 #include <Client.hpp>
 #include <Channel.hpp>
 #include <iostream>
@@ -122,7 +122,7 @@ void Server::handleClient(int fd)
 		client->buffer.erase(0, pos + 1);
 		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
 			cmd.erase(cmd.size() - 1);
-		processCommand(client, cmd);
+		processMessage(client, cmd);
 	}
 }
 
@@ -133,11 +133,11 @@ Channel* Server::getOrCreateChannel(const std::string &name)
 	return _channels[name];
 }
 
-Command	Server::parseLine(std::string line)
+Message	Server::parseLine(std::string line)
 {
 	std::istringstream iss(line);
 	std::string	token;
-	Command	cmd;
+	Message	cmd;
 	while (iss >> token)
 	{
 		if (cmd._cmd.empty())
@@ -148,9 +148,9 @@ Command	Server::parseLine(std::string line)
 	return (cmd);
 }
 
-void Server::processCommand(Client *client, const std::string &cmd)
+void Server::processMessage(Client *client, const std::string &cmd)
 {
-	Command	p_cmd = parseLine(cmd);
+	Message	p_cmd = parseLine(cmd);
 
 
 	if (p_cmd._cmd == "PASS")

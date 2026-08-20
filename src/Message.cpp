@@ -1,14 +1,14 @@
 
-#include <Command.hpp>
+#include <Message.hpp>
 #include <Client.hpp>
 #include <Server.hpp>
 #include <sys/socket.h>
 
-Command::Command() {}
+Message::Message() {}
 
-Command::~Command() {}
+Message::~Message() {}
 
-void Command::PASS(Server *server, Client *client, std::vector<std::string> args)
+void Message::PASS(Server *server, Client *client, std::vector<std::string> args)
 {
 	if (client->registered)
 		send(client->fd, "already registered error\r\n", 28, 0);
