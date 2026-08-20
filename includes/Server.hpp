@@ -34,5 +34,6 @@ class Server
 			void queueMessage(Client *client, const std::string &msg);
 			void processMessage(Client *client, const std::string &cmd);
 			Channel* getOrCreateChannel(const std::string &name);
+			std::string formatError(std::string code, const std::string &target, const std::string &msg) const;
 };
 

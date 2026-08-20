@@ -2,6 +2,9 @@
 #pragma once
 
 #include <string>
+#include <set>
+
+class Channel;
 
 class Client
 {
@@ -10,6 +13,7 @@ class Client
 		std::string _inBuffer;
 	public:
 		int fd;
+		std::set<Channel *>	_channels;
 		std::string _nickname;
 		std::string _username;
 

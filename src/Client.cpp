@@ -1,7 +1,7 @@
 
 #include "Client.hpp"
 
-Client::Client(int fd) : fd(fd), _registered(false) {}
+Client::Client(int fd) : fd(fd), _passGiven(false), _registered(false) {}
 
 std::string &Client::getInBuf() { return _inBuffer; }
 

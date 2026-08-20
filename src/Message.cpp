@@ -22,6 +22,14 @@ Message::Message(const std::string &line)
 			_cmd = token;
 			first = false;
 		}
+		else if (token[0] == ':')
+		{
+			std::string	end;
+			std::getline(iss, end);
+			token.erase(0, 1);
+			_args.push_back(token + end);
+			break;
+		}
 		else
 			_args.push_back(token);
 	}

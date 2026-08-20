@@ -21,6 +21,7 @@ CommandHandler::~CommandHandler() {}
 void CommandHandler::populateMap()
 {
 	_commands["PASS"] = &CommandHandler::PASS;
+	_commands["ECHO"] = &CommandHandler::ECHO;
 }
 
 void CommandHandler::execute(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args)
@@ -30,16 +31,29 @@ void CommandHandler::execute(std::string cmd, Server *server, Client *client, co
         return;
     it->second(server, client, args);
 }
+void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	std::string reply;
+	for (size_t i = 0; i < args.size(); i++)
+		reply += args[i] + " ";
+	reply += "\r\n";
+	server->queueMessage(client, reply);
+}
 
 void CommandHandler::PASS(Server *server, Client *client, const std::vector<std::string> &args)
 {
-	if (client->_registered)
-		server->queueMessage(client, "already registered error\r\n");
-	else
+	if (client->_passGiven)
 	{
-		if (args[0] == server->_password)
-			server->queueMessage(client, "Password OK\r\n");
-		else
-			server->queueMessage(client, "Password incorrect\r\n");
+		server->queueMessage(client, server->formatError("462", client->_nickname.empty() ? "*" : client->_nickname, ":Connection already registered"));
+		return;
+	}
+	if (args.size() != 1)
+	{
+		server->queueMessage(client, server->formatError("461", client->_nickname.empty() ? "*" : client->_nickname, "PASS :Syntax error"));
+		return;
+	}
+	if (args[0] == server->_password)
+	{
+		client->_passGiven = true;
 	}
 }

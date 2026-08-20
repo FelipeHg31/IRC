@@ -212,3 +212,8 @@ void Server::processMessage(Client *client, const std::string &cmd)
 
 	_cmdHandler.execute(p_cmd.getCmd(), this, client, p_cmd.getArgs());
 }
+
+std::string Server::formatError(std::string code, const std::string &target, const std::string &msg) const
+{
+	return ":ircserv " + code + " " + target + " " + msg + "\r\n";
+}
