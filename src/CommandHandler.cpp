@@ -2,7 +2,7 @@
 #include <Client.hpp>
 #include <Channel.hpp>
 #include <Server.hpp>
-
+#include <iostream>
 CommandHandler::CommandHandler()
 {
 	populateMap();
@@ -24,6 +24,7 @@ void CommandHandler::populateMap()
 	_commands["PASS"] = &CommandHandler::PASS;
 	_commands["NICK"] = &CommandHandler::NICK;
 	_commands["ECHO"] = &CommandHandler::ECHO;
+	_commands["JOIN"] = &CommandHandler::JOIN;
 }
 
 void CommandHandler::execute(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args)
@@ -42,52 +43,90 @@ void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std:
 	server->queueMessage(client, reply);
 }
 
+void CommandHandler::announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick)
+{
+	std::string notice = ":" + oldNick + " NICK :" + newNick + "\r\n";
+	std::set<Channel *> &channels = client->getChannels();
+
+	if (channels.empty())
+	{
+		server->queueMessage(client, notice);
+		return;
+	}
+
+	//std::set<Channel *>::iterator it;
+	//for (it = channels.begin(); it != channels.end(); it++)
+	//	(*it)->broadcastAll(server, notice);
+}
+
+bool CommandHandler::isValidNickChar(char c, bool isFirst)
+{
+	if (isFirst)
+		return (isalpha(static_cast<unsigned char>(c)) || c == '_');
+	return (isalnum(static_cast<unsigned char>(c)) || c == '_' || c == '-');
+}
+
 void CommandHandler::PASS(Server *server, Client *client, const std::vector<std::string> &args)
 {
-	if (client->isPassGiven())
+	if (client->isRegistered())
 	{
-		server->queueMessage(client, server->formatError("462", client->getNick().empty() ? "*" : client->getNick(), ":Connection already registered"));
+		server->queueMessage(client, server->formatError("462", client->getNick().empty() ? "*" : client->getNick(), ":You may not reregister"));
 		return;
 	}
+	if (client->isPassGiven())
+		return;
 	if (args.size() != 1)
 	{
-		server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), " PASS :Syntax error"));
+		server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), "PASS :Not enough parameters"));
 		return;
 	}
-	if (args[0] == server->getPass() && client->getNick().empty() && client->getUser().empty())
+	if (args[0] != server->getPass())
 	{
-		client->setPassGiven();
+		server->queueMessage(client, server->formatError("464", client->getNick().empty() ? "*" : client->getNick(), ":Password incorrect"));
+		return;
 	}
-	else
-		server->queueMessage(client, server->formatError("462", client->getNick().empty() ? "*" : client->getNick(), " :Connection already registered"));
+	client->setPassGiven();
 }
 
 void CommandHandler::NICK(Server *server, Client *client, const std::vector<std::string> &args)
 {
-	if (args.size() != 1 || args[0].empty())
+	if (args.size() < 1 || args[0].empty())
 	{
-		server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), " NICK :Syntax error"));
+		server->queueMessage(client, server->formatError("431", "*", ":No nickname given"));
 		return;
 	}
+
 	if (args[0].size() > 9)
 	{
-		server->queueMessage(client, server->formatError("432", client->getNick().empty() ? "*" : client->getNick(), args[0] + " :Nickname too long, max 9 characters"));
+		server->queueMessage(client, server->formatError("432", client->getNick().empty() ? "*" : client->getNick(), args[0] + " :Erroneous nickname"));
 		return;
+	}
+	for (size_t i = 0; i < args[0].size(); i++)
+	{
+		if (!isValidNickChar(args[0][i], i == 0))
+		{
+			server->queueMessage(client, server->formatError("432", client->getNick().empty() ? "*" : client->getNick(), args[0] + " :Erroneous nickname"));
+			return;
+		}
 	}
 	if (server->getClientByNick(args[0]))
 	{
-		server->queueMessage(client, server->formatError("433", client->getNick().empty() ? "*" : client->getNick(), args[0] + " :Nickname already in use"));
+		server->queueMessage(client, server->formatError("433", client->getNick().empty() ? "*" : client->getNick(), args[0] + " :Nickname is already in use"));
 		return;
 	}
+
+	std::string oldNick = client->getNick();
 	client->setNick(args[0]);
+
+	if (client->isRegistered())
+		announceNickChange(server, client, oldNick, args[0]);
+
 	server->tryRegistration(client);
-	server->queueMessage(client, ":prefijoprovi!sional NICK :" + args[0] + "\r\n");
-	// aqui hariamos broadcast a todos los clientes de los canales en los que este client este metido
-	// y aqui un tryregistrion (intentara' ver si ya tiene user y nick puestos y password y si tiene todo se conecta de forma oficial)
 }
 
 void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std::string> &args)
 {
+	client->setRegistered();
 	if (!client->isRegistered())
 	{
 		server->queueMessage(client, server->formatError("451", client->getNick().empty() ? "*" : client->getNick(), " :Connection not registered"));
@@ -107,8 +146,9 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 	}
 	else
 	{
-		Channel *out = server->addNewChannel(args[0]);
-		out->addClient(client);
+		chan = server->addNewChannel(args[0]);
+		chan->addClient(client);
 		//new -> makeclientadmin?
 	}
+	chan->broadcast(server, "teeeeeest!", client);
 }

@@ -200,6 +200,7 @@ void Server::handlePollIn(int fd)
 		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
 			cmd.erase(cmd.size() - 1);
 		Message	p_cmd(cmd);
+		std::cout << "client sent -> " << cmd << std::endl;
 		_cmdHandler.execute(p_cmd.getCmd(), this, client, p_cmd.getArgs());
 	}
 }

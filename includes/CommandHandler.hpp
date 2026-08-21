@@ -13,6 +13,8 @@ class CommandHandler
 		typedef void (*Handler)(Server*, Client*, const std::vector<std::string>&);
 		std::map<std::string, Handler> _commands;
 		void	populateMap();
+		static void announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick);
+		static bool	isValidNickChar(char c, bool isFirst);
 
 		static void PASS(Server *server, Client *client, const std::vector<std::string> &args);
 		static void ECHO(Server *server, Client *client, const std::vector<std::string> &args);

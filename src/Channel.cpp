@@ -1,5 +1,6 @@
 
 #include <Channel.hpp>
+#include <Server.hpp>
 #include <unistd.h>
 #include <sys/socket.h>
 
@@ -28,6 +29,7 @@ void Channel::removeClient(Client *client)
 	{
 		if (_clients[i] == client)
 		{
+			//quitar el channel del vector de channels del client
 			_clients.erase(_clients.begin() + i);
 			//broadcast msg
 		}
@@ -46,11 +48,11 @@ Client *Channel::getClientByFd(int fd)
 	return NULL;
 }
 
-void Channel::broadcast(const std::string &msg, Client *sender)
+void Channel::broadcast(Server *server, const std::string &msg, Client *sender)
 {
 	for (size_t i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i] != sender)
-			send(_clients[i]->getFd(), msg.c_str(), msg.size(), 0);
+			server->queueMessage(_clients[i], msg);
 	}
 }

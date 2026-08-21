@@ -11,7 +11,7 @@ const std::string &Client::getUser() const { return _username; }
 
 void Client::setNick(const std::string &nick) { _nickname = nick; }
 
-void Client::setUser(const std::string &user) { _nickname = user; }
+void Client::setUser(const std::string &user) { _username = user; }
 
 bool Client::isPassGiven() const { return _passGiven; }
 
