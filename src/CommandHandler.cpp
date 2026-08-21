@@ -23,6 +23,7 @@ void CommandHandler::populateMap()
 {
 	_commands["PASS"] = &CommandHandler::PASS;
 	_commands["NICK"] = &CommandHandler::NICK;
+	_commands["USER"] = &CommandHandler::USER;
 	_commands["ECHO"] = &CommandHandler::ECHO;
 	_commands["JOIN"] = &CommandHandler::JOIN;
 }
@@ -40,6 +41,7 @@ void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std:
 	for (size_t i = 0; i < args.size(); i++)
 		reply += args[i] + " ";
 	reply += "\r\n";
+	std::cout << "ECHO from user -> " << client->getNick() << " : " << reply;
 	server->queueMessage(client, reply);
 }
 
@@ -120,6 +122,43 @@ void CommandHandler::NICK(Server *server, Client *client, const std::vector<std:
 
 	if (client->isRegistered())
 		announceNickChange(server, client, oldNick, args[0]);
+
+	server->tryRegistration(client);
+}
+
+void CommandHandler::USER(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	if (client->isRegistered())
+	{
+		server->queueMessage(client, server->formatError("462", client->getNick().empty() ? "*" : client->getNick(), ":You may not reregister"));
+		return;
+	}
+	if (!client->getUser().empty())
+		return;
+	if (args.size() < 4)
+	{
+		server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), "USER :Not enough parameters"));
+		return;
+	}
+
+	const std::string &username = args[0];
+
+	if (username.empty())
+	{
+		server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), "USER :Erroneous username"));
+		return;
+	}
+	for (size_t i = 0; i < username.size(); i++)
+	{
+		if (!isValidNickChar(username[i], false))
+		{
+			server->queueMessage(client, server->formatError("461", client->getNick().empty() ? "*" : client->getNick(), "USER :Erroneous username"));
+			return;
+		}
+	}
+
+	client->setUser(username);
+	client->setRnam(args[3]);
 
 	server->tryRegistration(client);
 }

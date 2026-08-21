@@ -14,6 +14,7 @@ class Client
         std::string _inBuffer;
 		std::string _nickname;
 		std::string _username;
+		std::string	_realname;
 		std::set<Channel *>	_channels;
 		bool _passGiven;
 		bool _registered;
@@ -22,8 +23,11 @@ class Client
 
 		const std::string &getNick() const;
 		const std::string &getUser() const;
+		const std::string &getRnam() const;
+
 		void setNick(const std::string &nick);
 		void setUser(const std::string &user);
+		void setRnam(const std::string &name);
 
 		bool isPassGiven() const;
 		bool isRegistered() const;
