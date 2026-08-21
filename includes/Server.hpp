@@ -38,7 +38,7 @@ class Server
 			Channel	*getChannel(const std::string &name);
 			Channel	*addNewChannel(const std::string &name);
 			Client *getClientByNick(const std::string &nick);
-			std::string formatError(std::string code, const std::string &target, const std::string &msg) const;
+			std::string formatNumeric(std::string code, const std::string &target, const std::string &msg) const;
 			class NoValidServer : public std::exception 
 			{
 				private:

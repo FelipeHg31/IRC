@@ -245,7 +245,7 @@ Channel *Server::addNewChannel(const std::string &name)
 	return out;
 }
 
-std::string Server::formatError(std::string code, const std::string &target, const std::string &msg) const
+std::string Server::formatNumeric(std::string code, const std::string &target, const std::string &msg) const
 {
 	return ":ircserv " + code + " " + target + " " + msg + "\r\n";
 }
