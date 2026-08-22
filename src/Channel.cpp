@@ -18,7 +18,6 @@ std::vector<Client *> &Channel::getClients() { return _clients; }
 void Channel::addClient(Client *client)
 {
 	_clients.push_back(client);
-	client->getChannels().insert(this);
 }
 
 void Channel::removeClient(Client *client)
@@ -48,11 +47,12 @@ Client *Channel::getClientByFd(int fd)
 	return NULL;
 }
 
-void Channel::broadcast(Server *server, const std::string &msg, Client *sender)
+void Channel::broadcast(Server *server, const std::string &msg, Client *sender, bool toAll)
 {
 	for (size_t i = 0; i < _clients.size(); i++)
 	{
-		if (_clients[i] != sender)
-			server->queueMessage(_clients[i], msg);
+		if (_clients[i] == sender && !toAll)
+			continue;
+		server->queueMessage(_clients[i], msg);
 	}
 }

@@ -1,5 +1,6 @@
 
-#include "Client.hpp"
+#include <Client.hpp>
+#include <Channel.hpp>
 
 Client::Client(int fd) : _fd(fd), _passGiven(false), _registered(false) {}
 
@@ -24,6 +25,20 @@ bool Client::isRegistered() const { return _registered; }
 void Client::setPassGiven() { _passGiven = true; }
 
 void Client::setRegistered() { _registered = true; }
+
+std::set<Client *> Client::getChannelPeers() const
+{
+	std::set<Client *> peers;
+	std::set<Channel *>::iterator chanIt;
+
+	for (chanIt = _channels.begin(); chanIt != _channels.end(); chanIt++)
+	{
+		std::vector<Client *> &members = (*chanIt)->getClients();
+		for (size_t i = 0; i < members.size(); i++)
+			peers.insert(members[i]);
+	}
+	return peers;
+}
 
 std::set<Channel *> &Client::getChannels() { return _channels; }
 

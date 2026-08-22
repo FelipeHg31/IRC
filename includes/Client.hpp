@@ -34,6 +34,7 @@ class Client
 		void setPassGiven();
 		void setRegistered();
 
+		std::set<Client *> getChannelPeers() const;
 		std::set<Channel *> &getChannels();
 		std::string	&getInBuf();
 		std::string	&getOutBuf();

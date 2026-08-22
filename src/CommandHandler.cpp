@@ -63,17 +63,16 @@ void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std:
 void CommandHandler::announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick)
 {
 	std::string notice = ":" + oldNick + " NICK :" + newNick + "\r\n";
-	std::set<Channel *> &channels = client->getChannels();
+	std::set<Client *> peers = client->getChannelPeers();
 
-	if (channels.empty())
-	{
+	if (peers.empty())
 		server->queueMessage(client, notice);
-		return;
+	else
+	{
+		std::set<Client *>::iterator it;
+		for (it = peers.begin(); it != peers.end(); it++)
+			server->queueMessage(*it, notice);
 	}
-
-	//std::set<Channel *>::iterator it;
-	//for (it = channels.begin(); it != channels.end(); it++)
-	//	(*it)->broadcastAll(server, notice);
 }
 
 bool CommandHandler::isValidNickChar(char c, bool isFirst)
@@ -197,12 +196,14 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 	if (chan && !chan->getClientByFd(client->getFd()))
 	{
 		chan->addClient(client);
+		client->getChannels().insert(chan);
 	}
 	else
 	{
 		chan = server->addNewChannel(args[0]);
 		chan->addClient(client);
+		client->getChannels().insert(chan);
 		//new -> makeclientadmin?
 	}
-	chan->broadcast(server, "teeeeeest!", client);
+	chan->broadcast(server, "teeeeeest!", client, true);
 }

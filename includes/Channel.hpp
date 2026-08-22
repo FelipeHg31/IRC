@@ -23,6 +23,6 @@ public:
 	Client *getClientByFd(int fd);
 	void addClient(Client *client);
 	void removeClient(Client *client);
-	void broadcast(Server *server, const std::string &msg, Client *sender);
+	void broadcast(Server *server, const std::string &msg, Client *sender, bool toAll);
 };
 
