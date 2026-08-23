@@ -10,16 +10,18 @@ class Server;
 class Channel
 {
 private:
-	std::string _name;
+	const std::string _name;
 	std::vector<Client*> _clients;
 	Channel(const Channel &rhs);
 	Channel &operator=(const Channel &rhs);
-public:
+	public:
 	Channel(const std::string &name);
 	~Channel();
-
+	
+	static bool isValidChannelName(const std::string &name);
 	const std::string &getName() const;
 	std::vector<Client *> &getClients();
+	std::string	getMembers() const;
 	Client *getClientByFd(int fd);
 	void addClient(Client *client);
 	void removeClient(Client *client);

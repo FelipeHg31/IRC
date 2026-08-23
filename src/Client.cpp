@@ -51,6 +51,11 @@ std::set<Client *> Client::getChannelPeers() const
 
 std::set<Channel *> &Client::getChannels() { return _channels; }
 
+void Client::addChannel(Channel *chan)
+{
+	_channels.insert(chan);
+}
+
 std::string &Client::getInBuf() { return _inBuffer; }
 
 std::string &Client::getOutBuf() { return _outBuffer; }

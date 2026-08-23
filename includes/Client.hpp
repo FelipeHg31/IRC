@@ -28,7 +28,7 @@ class Client
 		const std::string &getHost() const;
 
 		std::string	getPrefix() const;
-		
+
 		void setNick(const std::string &nick);
 		void setUser(const std::string &user);
 		void setRnam(const std::string &name);
@@ -41,6 +41,7 @@ class Client
 
 		std::set<Client *> getChannelPeers() const;
 		std::set<Channel *> &getChannels();
+		void addChannel(Channel *chan);
 		std::string	&getInBuf();
 		std::string	&getOutBuf();
 

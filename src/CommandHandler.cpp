@@ -201,31 +201,36 @@ void CommandHandler::QUIT(Server *server, Client *client, const std::vector<std:
 
 void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std::string> &args)
 {
-	client->setRegistered();
-	if (!client->isRegistered())
-	{
-		server->queueMessage(client, server->formatNumeric("451", client->getNick().empty() ? "*" : client->getNick(), " :Connection not registered"));
-		return;
-	}
 	if (args.size() < 1)
 	{
-		server->queueMessage(client, server->formatNumeric("461", client->getNick().empty() ? "*" : client->getNick(), " JOIN :Syntax error"));
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "JOIN :Not enough parameters"));
 		return;
 	}
 
-	Channel *chan = server->getChannel(args[0]);
-	// implementar en futuro lo de JOIN canal1,canal2 y que los canales empiezan siempre con #
-	if (chan && !chan->getClientByFd(client->getFd()))
+	const std::string &chanName = args[0];
+
+	if (!Channel::isValidChannelName(chanName))
 	{
-		chan->addClient(client);
-		client->getChannels().insert(chan);
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
 	}
-	else
-	{
-		chan = server->addNewChannel(args[0]);
-		chan->addClient(client);
-		client->getChannels().insert(chan);
-		//new -> makeclientadmin?
-	}
-	chan->broadcast(server, "teeeeeest!", client, true);
+
+	Channel *chan = server->getChannel(chanName);
+
+	if (chan && chan->getClientByFd(client->getFd()))
+		return;
+
+	if (!chan)
+		chan = server->addNewChannel(chanName);
+
+	chan->addClient(client);
+	client->addChannel(chan);
+
+	std::string joinMsg = ":" + client->getPrefix() + " JOIN :" + chanName + "\r\n";
+	chan->broadcast(server, joinMsg, client, true);
+
+	server->queueMessage(client, server->formatNumeric("331", client->getNick(), chanName + " :No topic is set"));
+	server->queueMessage(client, server->formatNumeric("353", client->getNick(), "= " + chanName + " :" + chan->getMembers()));
+	server->queueMessage(client, server->formatNumeric("366", client->getNick(), chanName + " :End of /NAMES list"));
 }
+
