@@ -22,11 +22,13 @@ CommandHandler::~CommandHandler() {}
 
 void CommandHandler::populateMap()
 {
+	_commands["CAP"] =	&CommandHandler::CAP;
 	_commands["PASS"] = &CommandHandler::PASS;
 	_commands["NICK"] = &CommandHandler::NICK;
 	_commands["USER"] = &CommandHandler::USER;
-	_commands["ECHO"] = &CommandHandler::ECHO;
+	_commands["QUIT"] = &CommandHandler::QUIT;
 	_commands["JOIN"] = &CommandHandler::JOIN;
+	_commands["ECHO"] = &CommandHandler::ECHO;
 }
 
 void CommandHandler::execute(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args)
@@ -36,6 +38,7 @@ void CommandHandler::execute(std::string cmd, Server *server, Client *client, co
 	registrationCmds.insert("PASS");
 	registrationCmds.insert("USER");
 	registrationCmds.insert("NICK");
+	registrationCmds.insert("QUIT");
 
 	std::map<std::string, Handler>::iterator it = _commands.find(cmd);
 	if (it == _commands.end())
@@ -80,6 +83,16 @@ bool CommandHandler::isValidNickChar(char c, bool isFirst)
 	if (isFirst)
 		return (isalpha(static_cast<unsigned char>(c)) || c == '_');
 	return (isalnum(static_cast<unsigned char>(c)) || c == '_' || c == '-');
+}
+
+void CommandHandler::CAP(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	if (args.empty())
+		return;
+
+	std::string nick = client->getNick().empty() ? "*" : client->getNick();
+	if (args[0] == "LS")
+		server->queueMessage(client, ":ircserv CAP " + nick + " LS :\r\n");
 }
 
 void CommandHandler::PASS(Server *server, Client *client, const std::vector<std::string> &args)
@@ -175,6 +188,13 @@ void CommandHandler::USER(Server *server, Client *client, const std::vector<std:
 	client->setRnam(args[3]);
 
 	server->tryRegistration(client);
+}
+
+void CommandHandler::QUIT(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	std::string reason = args.empty() ? "Client Quit" : args[0];
+
+	server->removeClient(client->getFd(), reason);
 }
 
 void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std::string> &args)

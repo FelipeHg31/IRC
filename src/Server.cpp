@@ -235,6 +235,7 @@ void Server::handlePollIn(int fd)
 	size_t pos;
 	while ((pos = client->getInBuf().find("\n")) != std::string::npos)
 	{
+		std::cout << client->getInBuf();
 		std::string cmd = client->getInBuf().substr(0, pos);
 		client->getInBuf().erase(0, pos + 1);
 		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')

@@ -16,10 +16,12 @@ class CommandHandler
 		static void announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick);
 		static bool	isValidNickChar(char c, bool isFirst);
 
+		static void CAP(Server *server, Client *client, const std::vector<std::string> &args);
 		static void PASS(Server *server, Client *client, const std::vector<std::string> &args);
 		static void ECHO(Server *server, Client *client, const std::vector<std::string> &args);
 		static void NICK(Server *server, Client *client, const std::vector<std::string> &args);
 		static void USER(Server *server, Client *client, const std::vector<std::string> &args);
+		static void QUIT(Server *server, Client *client, const std::vector<std::string> &args);
 		static void JOIN(Server *server, Client *client, const std::vector<std::string> &args);
 	public:
 		CommandHandler();
