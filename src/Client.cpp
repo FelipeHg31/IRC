@@ -14,6 +14,11 @@ const std::string &Client::getRnam() const { return _realname; }
 
 const std::string &Client::getHost() const { return _hostname; }
 
+std::string Client::getPrefix() const
+{
+	return _nickname + "!" + _username + "@" + _hostname;
+}
+
 void Client::setNick(const std::string &nick) { _nickname = nick; }
 
 void Client::setUser(const std::string &user) { _username = user; }

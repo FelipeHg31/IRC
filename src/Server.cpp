@@ -3,6 +3,7 @@
 #include <Client.hpp>
 #include <Channel.hpp>
 #include <iostream>
+#include <ctime>
 #include <sstream>
 #include <cstring>
 #include <unistd.h>
@@ -13,6 +14,10 @@ Server::Server(int port, const std::string &password): _port(port), _password(pa
 {
 	if(port < 1024 || port > 49151)
 		throw(NoValidServer("Bad port"));
+	std::time_t now = std::time(NULL);
+	_creationDate = std::asctime(std::localtime(&now));
+	if (!_creationDate.empty() && _creationDate[_creationDate.size() - 1] == '\n')
+		_creationDate.erase(_creationDate.size() - 1);
 }
 Server::~Server() {}
 
@@ -174,7 +179,7 @@ void Server::removeClient(int fd, const std::string &reason)
 
 	if (client->isRegistered())
 	{
-		std::string prefix = client->getNick() + "!" + client->getUser() + "@" + client->getHost();
+		std::string prefix = client->getPrefix();
 		std::string notice = ":" + prefix + " QUIT :" + reason + "\r\n";
 		std::set<Client *> peers = client->getChannelPeers();
 		std::set<Client *>::iterator peerIt;
@@ -235,7 +240,6 @@ void Server::handlePollIn(int fd)
 	size_t pos;
 	while ((pos = client->getInBuf().find("\n")) != std::string::npos)
 	{
-		std::cout << client->getInBuf();
 		std::string cmd = client->getInBuf().substr(0, pos);
 		client->getInBuf().erase(0, pos + 1);
 		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
@@ -254,7 +258,13 @@ void	Server::tryRegistration(Client	*client)
 	if (!client->isPassGiven())
 		return;
 	client->setRegistered();
-	//welcome
+
+	const std::string &nick = client->getNick();
+
+	queueMessage(client, formatNumeric("001", nick, ":Bienvenido al Internet Relay Network " + client->getPrefix()));
+	queueMessage(client, formatNumeric("002", nick, ":Tu host es ircserv, ejectuando version 1.0"));
+	queueMessage(client, formatNumeric("003", nick, ":Este servidor se creó " + _creationDate));
+	queueMessage(client, formatNumeric("004", nick, "CONECTADO! YABBADABBADOOO!"));
 }
 
 Client *Server::getClientByNick(const std::string &nick)

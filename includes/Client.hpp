@@ -27,6 +27,8 @@ class Client
 		const std::string &getRnam() const;
 		const std::string &getHost() const;
 
+		std::string	getPrefix() const;
+		
 		void setNick(const std::string &nick);
 		void setUser(const std::string &user);
 		void setRnam(const std::string &name);

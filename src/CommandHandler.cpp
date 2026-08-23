@@ -65,17 +65,19 @@ void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std:
 
 void CommandHandler::announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick)
 {
-	std::string notice = ":" + oldNick + " NICK :" + newNick + "\r\n";
+	std::string oldPrefix = oldNick + "!" + client->getUser() + "@" + client->getHost();
+	std::string notice = ":" + oldPrefix + " NICK :" + newNick + "\r\n";
 	std::set<Client *> peers = client->getChannelPeers();
 
 	if (peers.empty())
-		server->queueMessage(client, notice);
-	else
 	{
-		std::set<Client *>::iterator it;
-		for (it = peers.begin(); it != peers.end(); it++)
-			server->queueMessage(*it, notice);
+		server->queueMessage(client, notice);
+		return;
 	}
+
+	std::set<Client *>::iterator it;
+	for (it = peers.begin(); it != peers.end(); it++)
+		server->queueMessage(*it, notice);
 }
 
 bool CommandHandler::isValidNickChar(char c, bool isFirst)
