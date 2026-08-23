@@ -12,11 +12,15 @@ const std::string &Client::getUser() const { return _username; }
 
 const std::string &Client::getRnam() const { return _realname; }
 
+const std::string &Client::getHost() const { return _hostname; }
+
 void Client::setNick(const std::string &nick) { _nickname = nick; }
 
 void Client::setUser(const std::string &user) { _username = user; }
 
 void Client::setRnam(const std::string &name) { _realname = name; }
+
+void Client::setHost(const std::string &name) { _hostname = name; }
 
 bool Client::isPassGiven() const { return _passGiven; }
 

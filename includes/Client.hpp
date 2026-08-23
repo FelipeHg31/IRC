@@ -15,6 +15,7 @@ class Client
 		std::string _nickname;
 		std::string _username;
 		std::string	_realname;
+		std::string	_hostname;
 		std::set<Channel *>	_channels;
 		bool _passGiven;
 		bool _registered;
@@ -24,10 +25,12 @@ class Client
 		const std::string &getNick() const;
 		const std::string &getUser() const;
 		const std::string &getRnam() const;
+		const std::string &getHost() const;
 
 		void setNick(const std::string &nick);
 		void setUser(const std::string &user);
 		void setRnam(const std::string &name);
+		void setHost(const std::string &host);
 
 		bool isPassGiven() const;
 		bool isRegistered() const;

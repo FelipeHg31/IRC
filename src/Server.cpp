@@ -128,6 +128,18 @@ void Server::handlePollOut(int fd, std::vector<int>	&toDelete)
     }
 }
 
+std::string Server::resolveHost(int fd)
+{
+	sockaddr_in addr;
+	socklen_t len = sizeof(addr);
+
+	if (getpeername(fd, (sockaddr *)&addr, &len) < 0)
+		return "unknown";
+
+	char *ip = inet_ntoa(addr.sin_addr);
+	return ip ? std::string(ip) : "unknown";
+}
+
 void Server::acceptClient()
 {
 	int clientFd = accept(_serverSocket, NULL, NULL);
@@ -145,16 +157,42 @@ void Server::acceptClient()
 	p.revents = 0;
 	_fds.push_back(p);
 
-	_clients[clientFd] = new Client(clientFd);
-
-	std::cout << "New client connected\n";
+	Client *newClient = new Client(clientFd);
+	newClient->setHost(resolveHost(clientFd));
+	_clients[clientFd] = newClient;
+	
+	std::cout << "New client connected: fd=" << clientFd << " host=" << newClient->getHost() << std::endl;
 }
 
-void Server::removeClient(int fd)
+void Server::removeClient(int fd, const std::string &reason)
 {
+	std::map<int, Client *>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return;
+
+	Client *client = it->second;
+
+	if (client->isRegistered())
+	{
+		std::string prefix = client->getNick() + "!" + client->getUser() + "@" + client->getHost();
+		std::string notice = ":" + prefix + " QUIT :" + reason + "\r\n";
+		std::set<Client *> peers = client->getChannelPeers();
+		std::set<Client *>::iterator peerIt;
+
+		for (peerIt = peers.begin(); peerIt != peers.end(); peerIt++)
+			if (*peerIt != client)
+				queueMessage(*peerIt, notice);
+	}
+
+	std::set<Channel *> &channels = client->getChannels();
+	std::set<Channel *>::iterator chanIt;
+
+	for (chanIt = channels.begin(); chanIt != channels.end(); chanIt++)
+		(*chanIt)->removeClient(client);
+
 	close(fd);
-	delete _clients[fd];
-	_clients.erase(fd);
+	delete client;
+	_clients.erase(it);
 
 	for (size_t i = 0; i < _fds.size(); i++)
 	{
@@ -164,6 +202,8 @@ void Server::removeClient(int fd)
 			break;
 		}
 	}
+
+	std::cout << "Client disconnected: fd=" << fd << " host=" << client->getHost() << " reason=" << reason << std::endl;
 }
 
 void Server::queueMessage(Client *client, const std::string &msg)

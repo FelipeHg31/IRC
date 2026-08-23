@@ -21,6 +21,7 @@ class Server
 			std::map<std::string, Channel *> _channels;
 			std::string					_password;
 			CommandHandler				_cmdHandler;
+			static std::string			resolveHost(int fd);
 			
 		public:
 			const std::string &getPass() const;
@@ -31,7 +32,7 @@ class Server
 			void acceptClient();
 			void handlePollIn(int fd);
 			void handlePollOut(int fd, std::vector<int> &toDelete);
-			void removeClient(int fd);
+			void removeClient(int fd, const std::string &reason = "Client disconnected.");
 			void queueMessage(Client *client, const std::string &msg);
 			void tryRegistration(Client *client);
 			void execCommand(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args);
