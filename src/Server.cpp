@@ -19,7 +19,24 @@ Server::Server(int port, const std::string &password): _port(port), _password(pa
 	if (!_creationDate.empty() && _creationDate[_creationDate.size() - 1] == '\n')
 		_creationDate.erase(_creationDate.size() - 1);
 }
-Server::~Server() {}
+Server::~Server()
+{
+	std::map<int, Client *>::iterator clientIt;
+	for (clientIt = _clients.begin(); clientIt != _clients.end(); clientIt++)
+	{
+		close(clientIt->first);
+		delete clientIt->second;
+	}
+	_clients.clear();
+
+	std::map<std::string, Channel *>::iterator chanIt;
+	for (chanIt = _channels.begin(); chanIt != _channels.end(); chanIt++)
+		delete chanIt->second;
+	_channels.clear();
+
+	if (_serverSocket >= 0)
+		close(_serverSocket);
+}
 
 const std::string &Server::getPass() const { return _password; }
 
