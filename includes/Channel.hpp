@@ -12,6 +12,8 @@ class Channel
 private:
 	const std::string _name;
 	std::vector<Client*> _clients;
+
+	Channel();
 	Channel(const Channel &rhs);
 	Channel &operator=(const Channel &rhs);
 	public:
