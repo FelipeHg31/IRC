@@ -31,14 +31,22 @@ void CommandHandler::populateMap()
 	_commands["ECHO"] = &CommandHandler::ECHO;
 }
 
+std::set<std::string> CommandHandler::populateRegCmds() const
+{
+	std::set<std::string> out;
+
+	out.insert("CAP");
+	out.insert("PASS");
+	out.insert("USER");
+	out.insert("NICK");
+	out.insert("QUIT");
+
+	return out;
+}
+
 void CommandHandler::execute(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args)
 {
-	std::set<std::string>	registrationCmds;
-	registrationCmds.insert("CAP");
-	registrationCmds.insert("PASS");
-	registrationCmds.insert("USER");
-	registrationCmds.insert("NICK");
-	registrationCmds.insert("QUIT");
+	static std::set<std::string>	registrationCmds = populateRegCmds();
 
 	std::map<std::string, Handler>::iterator it = _commands.find(cmd);
 	if (it == _commands.end())
