@@ -21,13 +21,15 @@ class Server
 			std::map<std::string, Channel *> _channels;
 			std::string					_password;
 			std::string					_creationDate;
+			std::string					_name;
 			CommandHandler				_cmdHandler;
 			static std::string			resolveHost(int fd);
 			
 		public:
 			const std::string &getPass() const;
+			const std::string &getName() const;
 			const std::string &getCreationDate() const;
-			Server(int port, const std::string &password);
+			Server(int port, const std::string &password, const std::string &name);
 			~Server();
 			bool init();
 			void start();
@@ -52,4 +54,3 @@ class Server
 
 			};
 };
-

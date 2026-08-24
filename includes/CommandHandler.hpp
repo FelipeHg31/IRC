@@ -18,6 +18,7 @@ class CommandHandler
 		static void announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick);
 		static bool	isValidNickChar(char c, bool isFirst);
 
+		static void PING(Server *server, Client *client, const std::vector<std::string> &args);
 		static void CAP(Server *server, Client *client, const std::vector<std::string> &args);
 		static void PASS(Server *server, Client *client, const std::vector<std::string> &args);
 		static void ECHO(Server *server, Client *client, const std::vector<std::string> &args);

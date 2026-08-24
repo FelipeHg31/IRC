@@ -10,10 +10,12 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 
-Server::Server(int port, const std::string &password): _port(port), _password(password)
+Server::Server(int port, const std::string &password, const std::string &name): _port(port), _password(password), _name(name)
 {
 	if(port < 1024 || port > 49151)
 		throw(NoValidServer("Bad port"));
+	if(name.empty())
+		throw(NoValidServer("Bad name"));
 	std::time_t now = std::time(NULL);
 	_creationDate = std::asctime(std::localtime(&now));
 	if (!_creationDate.empty() && _creationDate[_creationDate.size() - 1] == '\n')
@@ -39,6 +41,8 @@ Server::~Server()
 }
 
 const std::string &Server::getPass() const { return _password; }
+
+const std::string &Server::getName() const { return _name; }
 
 bool Server::init()
 {
@@ -171,7 +175,11 @@ void Server::acceptClient()
 		std::cerr << "Error: accept() failed" << std::endl;
 		return;
 	}
-	fcntl(clientFd, F_SETFL, O_NONBLOCK);
+	if (fcntl(clientFd, F_SETFL, O_NONBLOCK) < 0)
+	{
+		std::cerr << "Error: fcntl() failed" << std::endl;
+		return;
+	}
 
 	pollfd p;
 	p.fd = clientFd;

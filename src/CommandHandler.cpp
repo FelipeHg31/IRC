@@ -22,6 +22,7 @@ CommandHandler::~CommandHandler() {}
 
 void CommandHandler::populateMap()
 {
+	_commands["PING"] =	&CommandHandler::PING;
 	_commands["CAP"] =	&CommandHandler::CAP;
 	_commands["PASS"] = &CommandHandler::PASS;
 	_commands["NICK"] = &CommandHandler::NICK;
@@ -35,6 +36,7 @@ std::set<std::string> CommandHandler::populateRegCmds() const
 {
 	std::set<std::string> out;
 
+	out.insert("PING");
 	out.insert("CAP");
 	out.insert("PASS");
 	out.insert("USER");
@@ -94,6 +96,15 @@ bool CommandHandler::isValidNickChar(char c, bool isFirst)
 	if (isFirst)
 		return (isalpha(static_cast<unsigned char>(c)) || c == '_');
 	return (isalnum(static_cast<unsigned char>(c)) || c == '_' || c == '-');
+}
+
+void CommandHandler::PING(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	if (args.empty())
+		return;
+	if (args[0] != server->getName())
+		return;
+	server->queueMessage(client, "PONG " + server->getName());
 }
 
 void CommandHandler::CAP(Server *server, Client *client, const std::vector<std::string> &args)
