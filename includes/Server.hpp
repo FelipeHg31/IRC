@@ -24,22 +24,23 @@ class Server
 			std::string					_name;
 			CommandHandler				_cmdHandler;
 			static std::string			resolveHost(int fd);
-			
+			bool init();
+			void acceptClient();
+			void handlePollIn(int fd);
+			void handlePollOut(int fd, std::vector<int> &toDelete);
+			void execCommand(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args);
 		public:
 			const std::string &getPass() const;
 			const std::string &getName() const;
 			const std::string &getCreationDate() const;
 			Server(int port, const std::string &password, const std::string &name);
 			~Server();
-			bool init();
+
 			void start();
-			void acceptClient();
-			void handlePollIn(int fd);
-			void handlePollOut(int fd, std::vector<int> &toDelete);
-			void removeClient(int fd, const std::string &reason = "Client disconnected.");
 			void queueMessage(Client *client, const std::string &msg);
+			void removeClient(int fd, const std::string &reason = "Client disconnected.");
 			void tryRegistration(Client *client);
-			void execCommand(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args);
+			
 			Channel	*getChannel(const std::string &name);
 			Channel	*addNewChannel(const std::string &name);
 			Client *getClientByNick(const std::string &nick);
