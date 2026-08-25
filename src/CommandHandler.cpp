@@ -30,6 +30,10 @@ void CommandHandler::populateMap()
 	_commands["QUIT"] = &CommandHandler::QUIT;
 	_commands["JOIN"] = &CommandHandler::JOIN;
 	_commands["ECHO"] = &CommandHandler::ECHO;
+	_commands["MODE"] = &CommandHandler::MODE;
+	_commands["INVITE"] = &CommandHandler::INVITE;
+	_commands["TOPIC"] = &CommandHandler::TOPIC;
+	_commands["PRIVMSG"] = &CommandHandler::PRIVMSG;
 }
 
 std::set<std::string> CommandHandler::populateRegCmds() const
@@ -42,10 +46,13 @@ std::set<std::string> CommandHandler::populateRegCmds() const
 	out.insert("USER");
 	out.insert("NICK");
 	out.insert("QUIT");
+	out.insert("MODE");
+	out.insert("INVITE");
+	out.insert("TOPIC");
+	out.insert("PRIVMSG");
 
 	return out;
 }
-
 void CommandHandler::execute(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args)
 {
 	static std::set<std::string>	registrationCmds = populateRegCmds();
@@ -63,6 +70,192 @@ void CommandHandler::execute(std::string cmd, Server *server, Client *client, co
 		return;
 	}
 	it->second(server, client, args);
+}
+void CommandHandler::TOPIC(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	if(args.size() < 2)
+	{
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "TOPIC:Not enough parameters"));
+		return;
+	}
+
+	const std::string &chanName = args[0];
+
+	if (!Channel::isValidChannelName(chanName))
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	Channel *chan = server->getChannel(chanName);
+	if(!chan)
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	if (!chan->getClientByFd(client->getFd()))
+		return;
+	if(!chan->isAdmin(*client))
+	{
+		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		return;
+	}
+	std::string topic(args[1]);
+	
+	for(size_t i = 2; i < args.size(); i++)
+	{
+		topic += " ";
+		topic += args[i];
+	}
+	chan->setTopic(topic);
+	std::cout << server->formatMessage("TOPIC", *client, chanName, topic ) << std::endl;
+	chan->broadcast(server, server->formatMessage("TOPIC", *client, chanName, topic ),client, true);
+
+}
+static void PrivmsgChannel(Server* server, Client *client, const std::vector<std::string> &args)
+{
+
+	const std::string &chanName = args[0];
+
+
+
+	Channel *chan = server->getChannel(chanName);
+	if(!chan)
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	std::string msg(args[1]);
+	for(size_t i = 2; i < args.size(); i++)
+	{
+		msg += " ";
+		msg += args[i];
+	}
+	chan->broadcast(server, server->formatMessage("PRIVMSG", *client, chanName, msg ),client, true);
+	
+}
+static void Privmsgclient(Server* server, Client *client, const std::vector<std::string> &args)
+{
+	const std::string &target = args[0];
+
+	Client *clientTarget = server->getClientByNick(target);
+	if(!clientTarget)
+	{
+		server->queueMessage(client, server->formatNumeric("401", args[1], " :No such nick"));
+		return ;
+	}
+	std::string msg(args[1]);
+	for(size_t i = 2; i < args.size(); i++)
+	{
+		msg += " ";
+		msg += args[i];
+	}
+	server->broadcast(server, server->formatMessage("PRIVMSG", *client,target, msg ),clientTarget);
+
+}
+void CommandHandler::PRIVMSG(Server *server, Client *client, const std::vector<std::string> &args)
+{
+
+	if(args.size() < 2)
+	{
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "PRIVMSG:Not enough parameters"));
+		return;
+	}
+
+	const std::string &target = args[0];
+
+	if(target[0] == '#')
+		PrivmsgChannel(server, client, args);
+	else
+		Privmsgclient(server, client, args);
+
+
+}
+void CommandHandler::INVITE(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	if (args.size() < 2)
+	{
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "INVITE:Not enough parameters"));
+		return;
+	}
+
+	const std::string &chanName = args[0];
+
+	if (!Channel::isValidChannelName(chanName))
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+
+
+	Channel *chan = server->getChannel(chanName);
+	if(!chan)
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	if(!chan->isAdmin(*client))
+	{
+		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		return;
+	}
+	Client *invited = server->getClientByNick(args[1]);
+	if(!invited)
+	{
+		server->queueMessage(client, server->formatNumeric("401", args[1], " :No such nick"));
+	}
+	if(chan->IsInvited(invited))
+		return;
+	chan->Inviteclient(invited);
+}
+void CommandHandler::MODE(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	
+	std::string chanName = args[0];
+
+	if (args.size() < 2)
+	{
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "MODE:Not enough parameters"));
+		return;
+	}
+
+	if (!client->isRegistered())
+	{
+		server->queueMessage(client, server->formatNumeric("462", client->getNick(), ":You may not reregister"));
+		return;
+	}
+	if (!Channel::isValidChannelName(chanName))
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	Channel *chan = server->getChannel(chanName);
+
+	if(!chan->isAdmin(*client))
+	{
+		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		return;
+	}
+	std::string option[2] = {"+i", "-i"};
+	size_t i = 0;
+	for (; i < 2; i++)
+	{
+			if(option[i] == args[1])
+				break;
+	}
+	switch (i)
+	{
+	case 0:
+		chan->putUpInviteMode();
+		break;
+	case 1:
+		chan->putDownInviteMode();
+		break;
+	default:
+		server->queueMessage(client, server->formatNumeric("472", client->getNick(), args[2] + " : is unkown mode char for me"));
+		return;
+	}
+	
+
 }
 void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std::string> &args)
 {
@@ -197,7 +390,7 @@ void CommandHandler::USER(Server *server, Client *client, const std::vector<std:
 	const std::string &username = args[0];
 
 	if (username.empty())
-	{
+	{	
 		server->queueMessage(client, server->formatNumeric("461", nick, "USER :Erroneous username"));
 		return;
 	}
@@ -245,8 +438,16 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 		return;
 
 	if (!chan)
-		chan = server->addNewChannel(chanName);
-
+		chan = server->addNewChannel(chanName, client);
+	if(chan->inviteMode())
+	{
+		if(!chan->IsInvited(client))
+		{
+			server->queueMessage(client, server->formatNumeric("473", client->getNick(), chanName + " :Cannot join channel (+i)"));
+			return ;
+		}
+		chan->RemoveInvite(client);			
+	}
 	chan->addClient(client);
 	client->addChannel(chan);
 

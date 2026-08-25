@@ -2,7 +2,7 @@
 #include <Client.hpp>
 #include <Channel.hpp>
 
-Client::Client(int fd) : _fd(fd), _passGiven(false), _registered(false) {}
+Client::Client(int fd) : _fd(fd), _passGiven(false), _registered(false){}
 
 const int &Client::getFd() const { return _fd; }
 
@@ -54,6 +54,11 @@ std::set<Channel *> &Client::getChannels() { return _channels; }
 void Client::addChannel(Channel *chan)
 {
 	_channels.insert(chan);
+}
+
+bool Client::operator==(const Client& other)
+{
+	return(this->getUser() == other.getUser());
 }
 
 std::string &Client::getInBuf() { return _inBuffer; }

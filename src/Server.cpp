@@ -165,7 +165,6 @@ std::string Server::resolveHost(int fd)
 	char *ip = inet_ntoa(addr.sin_addr);
 	return ip ? std::string(ip) : "unknown";
 }
-
 void Server::acceptClient()
 {
 	int clientFd = accept(_serverSocket, NULL, NULL);
@@ -249,7 +248,8 @@ void Server::queueMessage(Client *client, const std::string &msg)
 	}	
 }
 
-void Server::handlePollIn(int fd)
+void Server::
+handlePollIn(int fd)
 {
 	char buffer[512];
 	int bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
@@ -313,9 +313,9 @@ Channel *Server::getChannel(const std::string &name)
 		return NULL;
 }
 
-Channel *Server::addNewChannel(const std::string &name)
+Channel *Server::addNewChannel(const std::string &name, Client *admin)
 {
-	Channel	*out = new Channel(name);
+	Channel	*out = new Channel(name, admin);
 	_channels[name] = out;
 
 	return out;
@@ -324,4 +324,13 @@ Channel *Server::addNewChannel(const std::string &name)
 std::string Server::formatNumeric(std::string code, const std::string &target, const std::string &msg) const
 {
 	return ":ircserv " + code + " " + target + " " + msg + "\r\n";
+}
+std::string Server::formatMessage(const std::string &source,const Client &speaker, const std::string & chan  , const std::string& msg ) const
+{
+	return(( ":"+ speaker.getNick() + "!" + speaker.getUser() + "@" + speaker.getHost() + " " + source + " " + chan + " :" + msg + "\r\n"));
+}
+
+void 		Server::broadcast(Server *server, const std::string &msg, Client *target)
+{
+		server->queueMessage(target, msg);
 }
