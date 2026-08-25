@@ -46,10 +46,6 @@ std::set<std::string> CommandHandler::populateRegCmds() const
 	out.insert("USER");
 	out.insert("NICK");
 	out.insert("QUIT");
-	out.insert("MODE");
-	out.insert("INVITE");
-	out.insert("TOPIC");
-	out.insert("PRIVMSG");
 
 	return out;
 }
@@ -61,12 +57,12 @@ void CommandHandler::execute(std::string cmd, Server *server, Client *client, co
 	std::map<std::string, Handler>::iterator it = _commands.find(cmd);
 	if (it == _commands.end())
 	{
-		server->queueMessage(client, server->formatNumeric("421", nick, cmd + " :Unknown command"));
+		server->sendNumericMsg(client, "421", nick, cmd + " :Unknown command");
 		return;
 	}
 	if (!client->isRegistered() && registrationCmds.find(cmd) == registrationCmds.end())
 	{
-		server->queueMessage(client, server->formatNumeric("451", nick, ":You have not registered"));
+		server->sendNumericMsg(client, "451", nick, ":You have not registered");
 		return;
 	}
 	it->second(server, client, args);
@@ -75,7 +71,7 @@ void CommandHandler::TOPIC(Server *server, Client *client, const std::vector<std
 {
 	if(args.size() < 2)
 	{
-		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "TOPIC:Not enough parameters"));
+		server->sendNumericMsg(client, "461", client->getNick(), "TOPIC:Not enough parameters");
 		return;
 	}
 
@@ -83,20 +79,20 @@ void CommandHandler::TOPIC(Server *server, Client *client, const std::vector<std
 
 	if (!Channel::isValidChannelName(chanName))
 	{
-		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		server->sendNumericMsg(client, "403", client->getNick(), chanName + " :No such channel");
 		return;
 	}
 	Channel *chan = server->getChannel(chanName);
 	if(!chan)
 	{
-		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		server->sendNumericMsg(client, "403", client->getNick(), chanName + " :No such channel");
 		return;
 	}
 	if (!chan->getClientByFd(client->getFd()))
 		return;
 	if(!chan->isAdmin(*client))
 	{
-		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		server->sendNumericMsg(client, "482", client->getNick(), chanName + " :You're not channel operator");
 		return;
 	}
 	std::string topic(args[1]);
@@ -121,7 +117,7 @@ static void PrivmsgChannel(Server* server, Client *client, const std::vector<std
 	Channel *chan = server->getChannel(chanName);
 	if(!chan)
 	{
-		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		server->sendNumericMsg(client, "403", client->getNick(), chanName + " :No such channel");
 		return;
 	}
 	std::string msg(args[1]);
@@ -130,7 +126,7 @@ static void PrivmsgChannel(Server* server, Client *client, const std::vector<std
 		msg += " ";
 		msg += args[i];
 	}
-	chan->broadcast(server, server->formatMessage("PRIVMSG", *client, chanName, msg ),client, true);
+	chan->broadcast(server, server->formatMessage("PRIVMSG", *client, chanName, msg ),client, false);
 	
 }
 static void Privmsgclient(Server* server, Client *client, const std::vector<std::string> &args)
@@ -140,7 +136,7 @@ static void Privmsgclient(Server* server, Client *client, const std::vector<std:
 	Client *clientTarget = server->getClientByNick(target);
 	if(!clientTarget)
 	{
-		server->queueMessage(client, server->formatNumeric("401", args[1], " :No such nick"));
+		server->sendNumericMsg(client, "401", args[1], " :No such nick");
 		return ;
 	}
 	std::string msg(args[1]);
@@ -157,7 +153,7 @@ void CommandHandler::PRIVMSG(Server *server, Client *client, const std::vector<s
 
 	if(args.size() < 2)
 	{
-		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "PRIVMSG:Not enough parameters"));
+		server->sendNumericMsg(client, "461", client->getNick(), "PRIVMSG:Not enough parameters");
 		return;
 	}
 
@@ -174,7 +170,7 @@ void CommandHandler::INVITE(Server *server, Client *client, const std::vector<st
 {
 	if (args.size() < 2)
 	{
-		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "INVITE:Not enough parameters"));
+		server->sendNumericMsg(client, "461", client->getNick(), "INVITE:Not enough parameters");
 		return;
 	}
 
@@ -182,7 +178,7 @@ void CommandHandler::INVITE(Server *server, Client *client, const std::vector<st
 
 	if (!Channel::isValidChannelName(chanName))
 	{
-		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		server->sendNumericMsg(client, "403", client->getNick(), chanName + " :No such channel");
 		return;
 	}
 
@@ -190,18 +186,18 @@ void CommandHandler::INVITE(Server *server, Client *client, const std::vector<st
 	Channel *chan = server->getChannel(chanName);
 	if(!chan)
 	{
-		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		server->sendNumericMsg(client, "403", client->getNick(), chanName + " :No such channel");
 		return;
 	}
 	if(!chan->isAdmin(*client))
 	{
-		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		server->sendNumericMsg(client, "482", client->getNick(), chanName + " :You're not channel operator");
 		return;
 	}
 	Client *invited = server->getClientByNick(args[1]);
 	if(!invited)
 	{
-		server->queueMessage(client, server->formatNumeric("401", args[1], " :No such nick"));
+		server->sendNumericMsg(client, "401", args[1], " :No such nick");
 	}
 	if(chan->IsInvited(invited))
 		return;
@@ -214,25 +210,25 @@ void CommandHandler::MODE(Server *server, Client *client, const std::vector<std:
 
 	if (args.size() < 2)
 	{
-		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "MODE:Not enough parameters"));
+		server->sendNumericMsg(client, "461", client->getNick(), "MODE:Not enough parameters");
 		return;
 	}
 
 	if (!client->isRegistered())
 	{
-		server->queueMessage(client, server->formatNumeric("462", client->getNick(), ":You may not reregister"));
+		server->sendNumericMsg(client, "462", client->getNick(), ":You may not reregister");
 		return;
 	}
 	if (!Channel::isValidChannelName(chanName))
 	{
-		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		server->sendNumericMsg(client, "403", client->getNick(), chanName + " :No such channel");
 		return;
 	}
 	Channel *chan = server->getChannel(chanName);
 
 	if(!chan->isAdmin(*client))
 	{
-		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		server->sendNumericMsg(client, "482", client->getNick(), chanName + " :You're not channel operator");
 		return;
 	}
 	std::string option[2] = {"+i", "-i"};
@@ -251,7 +247,7 @@ void CommandHandler::MODE(Server *server, Client *client, const std::vector<std:
 		chan->putDownInviteMode();
 		break;
 	default:
-		server->queueMessage(client, server->formatNumeric("472", client->getNick(), args[2] + " : is unkown mode char for me"));
+		server->sendNumericMsg(client, "472", client->getNick(), args[2] + " : is unkown mode char for me");
 		return;
 	}
 	
@@ -316,19 +312,19 @@ void CommandHandler::PASS(Server *server, Client *client, const std::vector<std:
 
 	if (client->isRegistered())
 	{
-		server->queueMessage(client, server->formatNumeric("462", nick, ":You may not reregister"));
+		server->sendNumericMsg(client, "462", nick, ":You may not reregister");
 		return;
 	}
 	if (client->isPassGiven())
 		return;
 	if (args.size() != 1)
 	{
-		server->queueMessage(client, server->formatNumeric("461", nick, "PASS :Not enough parameters"));
+		server->sendNumericMsg(client, "461", nick, "PASS :Not enough parameters");
 		return;
 	}
 	if (args[0] != server->getPass())
 	{
-		server->queueMessage(client, server->formatNumeric("464", nick, ":Password incorrect"));
+		server->sendNumericMsg(client, "464", nick, ":Password incorrect");
 		return;
 	}
 	client->setPassGiven();
@@ -339,25 +335,25 @@ void CommandHandler::NICK(Server *server, Client *client, const std::vector<std:
 	std::string	nick = client->getNick().empty() ? "*" : client->getNick();
 	if (args.size() < 1 || args[0].empty())
 	{
-		server->queueMessage(client, server->formatNumeric("431", nick, ":No nickname given"));
+		server->sendNumericMsg(client, "431", nick, ":No nickname given");
 		return;
 	}
 	if (args[0].size() > 9)
 	{
-		server->queueMessage(client, server->formatNumeric("432", nick, args[0] + " :Erroneous nickname"));
+		server->sendNumericMsg(client, "432", nick, args[0] + " :Erroneous nickname");
 		return;
 	}
 	for (size_t i = 0; i < args[0].size(); i++)
 	{
 		if (!isValidNickChar(args[0][i], i == 0))
 		{
-			server->queueMessage(client, server->formatNumeric("432", nick, args[0] + " :Erroneous nickname"));
+			server->sendNumericMsg(client, "432", nick, args[0] + " :Erroneous nickname");
 			return;
 		}
 	}
 	if (server->getClientByNick(args[0]))
 	{
-		server->queueMessage(client, server->formatNumeric("433", nick, args[0] + " :Nickname is already in use"));
+		server->sendNumericMsg(client, "433", nick, args[0] + " :Nickname is already in use");
 		return;
 	}
 
@@ -376,14 +372,14 @@ void CommandHandler::USER(Server *server, Client *client, const std::vector<std:
 
 	if (client->isRegistered())
 	{
-		server->queueMessage(client, server->formatNumeric("462", nick, ":You may not reregister"));
+		server->sendNumericMsg(client, "462", nick, ":You may not reregister");
 		return;
 	}
 	if (!client->getUser().empty())
 		return;
 	if (args.size() < 4)
 	{
-		server->queueMessage(client, server->formatNumeric("461", nick, "USER :Not enough parameters"));
+		server->sendNumericMsg(client, "461", nick, "USER :Not enough parameters");
 		return;
 	}
 
@@ -391,14 +387,14 @@ void CommandHandler::USER(Server *server, Client *client, const std::vector<std:
 
 	if (username.empty())
 	{	
-		server->queueMessage(client, server->formatNumeric("461", nick, "USER :Erroneous username"));
+		server->sendNumericMsg(client, "461", nick, "USER :Erroneous username");
 		return;
 	}
 	for (size_t i = 0; i < username.size(); i++)
 	{
 		if (!isValidNickChar(username[i], false))
 		{
-			server->queueMessage(client, server->formatNumeric("461", nick, "USER :Erroneous username"));
+			server->sendNumericMsg(client, "461", nick, "USER :Erroneous username");
 			return;
 		}
 	}
@@ -420,7 +416,7 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 {
 	if (args.size() < 1)
 	{
-		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "JOIN :Not enough parameters"));
+		server->sendNumericMsg(client, "461", client->getNick(), "JOIN :Not enough parameters");
 		return;
 	}
 
@@ -428,7 +424,7 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 
 	if (!Channel::isValidChannelName(chanName))
 	{
-		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		server->sendNumericMsg(client, "403", client->getNick(), chanName + " :No such channel");
 		return;
 	}
 
@@ -443,7 +439,7 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 	{
 		if(!chan->IsInvited(client))
 		{
-			server->queueMessage(client, server->formatNumeric("473", client->getNick(), chanName + " :Cannot join channel (+i)"));
+			server->sendNumericMsg(client, "473", client->getNick(), chanName + " :Cannot join channel (+i)");
 			return ;
 		}
 		chan->RemoveInvite(client);			
@@ -454,8 +450,8 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 	std::string joinMsg = ":" + client->getPrefix() + " JOIN :" + chanName + "\r\n";
 	chan->broadcast(server, joinMsg, client, true);
 
-	server->queueMessage(client, server->formatNumeric("331", client->getNick(), chanName + " :No topic is set"));
-	server->queueMessage(client, server->formatNumeric("353", client->getNick(), "= " + chanName + " :" + chan->getMembers()));
-	server->queueMessage(client, server->formatNumeric("366", client->getNick(), chanName + " :End of /NAMES list"));
+	server->sendNumericMsg(client, "331", client->getNick(), chanName + " :No topic is set");
+	server->sendNumericMsg(client, "353", client->getNick(), "= " + chanName + " :" + chan->getMembers());
+	server->sendNumericMsg(client, "366", client->getNick(), chanName + " :End of /NAMES list");
 }
 

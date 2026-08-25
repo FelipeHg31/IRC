@@ -235,6 +235,11 @@ void Server::removeClient(int fd, const std::string &reason)
 	std::cout << "Client disconnected: fd=" << fd << " host=" << client->getHost() << " reason=" << reason << std::endl;
 }
 
+void Server::sendNumericMsg(Client *client, const std::string &code, const std::string &target, const std::string &msg)
+{
+	queueMessage(client, formatNumeric(code, target, msg));
+}
+
 void Server::queueMessage(Client *client, const std::string &msg)
 {
 	client->getOutBuf() += msg;
@@ -248,8 +253,7 @@ void Server::queueMessage(Client *client, const std::string &msg)
 	}	
 }
 
-void Server::
-handlePollIn(int fd)
+void Server::handlePollIn(int fd)
 {
 	char buffer[512];
 	int bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
@@ -321,7 +325,7 @@ Channel *Server::addNewChannel(const std::string &name, Client *admin)
 	return out;
 }
 
-std::string Server::formatNumeric(std::string code, const std::string &target, const std::string &msg) const
+std::string Server::formatNumeric(const std::string &code, const std::string &target, const std::string &msg) const
 {
 	return ":ircserv " + code + " " + target + " " + msg + "\r\n";
 }
