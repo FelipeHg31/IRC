@@ -30,6 +30,8 @@ void CommandHandler::populateMap()
 	_commands["QUIT"] = &CommandHandler::QUIT;
 	_commands["JOIN"] = &CommandHandler::JOIN;
 	_commands["ECHO"] = &CommandHandler::ECHO;
+	_commands["MODE"] = &CommandHandler::MODE;
+	_commands["INVITE"] = &CommandHandler::INVITE;
 }
 
 std::set<std::string> CommandHandler::populateRegCmds() const
@@ -42,10 +44,11 @@ std::set<std::string> CommandHandler::populateRegCmds() const
 	out.insert("USER");
 	out.insert("NICK");
 	out.insert("QUIT");
+	out.insert("MODE");
+	out.insert("INVITE");
 
 	return out;
 }
-
 void CommandHandler::execute(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args)
 {
 	static std::set<std::string>	registrationCmds = populateRegCmds();
@@ -63,6 +66,93 @@ void CommandHandler::execute(std::string cmd, Server *server, Client *client, co
 		return;
 	}
 	it->second(server, client, args);
+}
+void CommandHandler::INVITE(Server *server, Client *client, const std::vector<std::string> &args)
+{
+		if (args.size() < 2)
+	{
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "INVITE:Not enough parameters"));
+		return;
+	}
+
+	const std::string &chanName = args[0];
+
+	if (!Channel::isValidChannelName(chanName))
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+
+
+	Channel *chan = server->getChannel(chanName);
+	if(!chan)
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	if(!chan->isAdmin(*client))
+	{
+		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		return;
+	}
+	Client *invited = server->getClientByNick(args[1]);
+	if(!invited)
+	{
+		server->queueMessage(client, server->formatNumeric("403", args[1], " :No such nick"));
+	}
+	if(chan->IsInvited(invited))
+		return;
+	chan->Inviteclient(invited);
+}
+void CommandHandler::MODE(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	
+	std::string chanName = args[0];
+
+	if (args.size() < 2)
+	{
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "MODE:Not enough parameters"));
+		return;
+	}
+
+	if (!client->isRegistered())
+	{
+		server->queueMessage(client, server->formatNumeric("462", client->getNick(), ":You may not reregister"));
+		return;
+	}
+	if (!Channel::isValidChannelName(chanName))
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	Channel *chan = server->getChannel(chanName);
+
+	if(!chan->isAdmin(*client))
+	{
+		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		return;
+	}
+	std::string option[2] = {"+i", "-i"};
+	size_t i = 0;
+	for (; i < 2; i++)
+	{
+			if(option[i] == args[1])
+				break;
+	}
+	switch (i)
+	{
+	case 0:
+		chan->putUpInviteMode();
+		break;
+	case 1:
+		chan->putDownInviteMode();
+		break;
+	default:
+		server->queueMessage(client, server->formatNumeric("472", client->getNick(), args[2] + " : is unkown mode char for me"));
+		return;
+	}
+	
+
 }
 void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std::string> &args)
 {
@@ -197,7 +287,7 @@ void CommandHandler::USER(Server *server, Client *client, const std::vector<std:
 	const std::string &username = args[0];
 
 	if (username.empty())
-	{
+	{	
 		server->queueMessage(client, server->formatNumeric("461", nick, "USER :Erroneous username"));
 		return;
 	}
@@ -245,8 +335,16 @@ void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std:
 		return;
 
 	if (!chan)
-		chan = server->addNewChannel(chanName);
-
+		chan = server->addNewChannel(chanName, client);
+	if(chan->inviteMode())
+	{
+		if(!chan->IsInvited(client))
+		{
+			server->queueMessage(client, server->formatNumeric("473", client->getNick(), chanName + " :Cannot join channel (+i)"));
+			return ;
+		}
+		chan->RemoveInvite(client);			
+	}
 	chan->addClient(client);
 	client->addChannel(chan);
 

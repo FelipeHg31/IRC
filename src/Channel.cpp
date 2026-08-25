@@ -3,8 +3,9 @@
 #include <Server.hpp>
 #include <unistd.h>
 #include <sys/socket.h>
+#include "iostream"
 
-Channel::Channel(const std::string &name) : _name(name) {}
+Channel::Channel(const std::string &name, Client *admin) : _name(name), _admin(admin), _inviteMode(false) {}
 
 Channel::~Channel() {}
 
@@ -28,10 +29,12 @@ std::string Channel::getMembers() const
 	return names;
 }
 
+const Client &Channel::getAdmin(){return(*_admin);}
 void Channel::addClient(Client *client)
 {
 	_clients.push_back(client);
 }
+
 
 void Channel::removeClient(Client *client)
 {
@@ -46,7 +49,33 @@ void Channel::removeClient(Client *client)
 	}
 
 }
+void Channel::Inviteclient(Client *client)
+{
+	this->_invited.push_back(client);
+}
+void Channel::RemoveInvite(Client *client)
+{
+	if (!client)
+		return;
+	for (size_t i = 0; i < _invited.size(); i++)
+	{
+		if (_invited[i] == client)
+		{
+			_invited.erase(_invited.begin() + i);
+		}
+	}
 
+}
+Client *Channel::getInvitedbyFd(int fd)
+{
+	std::vector<Client *>::iterator it;
+	for (it = _invited.begin(); it != _invited.end(); it++)
+	{
+		if ((*it)->getFd() == fd)
+			return *it;
+	}
+	return(NULL);
+}
 Client *Channel::getClientByFd(int fd)
 {
 	std::vector<Client *>::iterator it;
@@ -57,7 +86,6 @@ Client *Channel::getClientByFd(int fd)
 	}
 	return NULL;
 }
-
 void Channel::broadcast(Server *server, const std::string &msg, Client *sender, bool toAll)
 {
 	for (size_t i = 0; i < _clients.size(); i++)
@@ -67,7 +95,15 @@ void Channel::broadcast(Server *server, const std::string &msg, Client *sender, 
 		server->queueMessage(_clients[i], msg);
 	}
 }
-
+void Channel::putDownInviteMode()
+{
+	this->_inviteMode = false;
+}
+void Channel::putUpInviteMode()
+{
+	this->_inviteMode = true;
+}
+bool Channel::inviteMode(){return(this->_inviteMode);}
 bool Channel::isValidChannelName(const std::string &name)
 {
 	if (name.size() < 2 || name.size() > 50)
@@ -80,4 +116,15 @@ bool Channel::isValidChannelName(const std::string &name)
 			return false;
 	}
 	return true;
+}
+bool Channel::IsInvited(Client* other)
+{
+	if(!getInvitedbyFd(other->getFd()))
+		return(false);
+	return(true);
+}
+
+bool Channel::isAdmin( Client& other)
+{
+	return(other == this->getAdmin() );
 }

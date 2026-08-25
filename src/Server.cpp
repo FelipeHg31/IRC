@@ -165,7 +165,6 @@ std::string Server::resolveHost(int fd)
 	char *ip = inet_ntoa(addr.sin_addr);
 	return ip ? std::string(ip) : "unknown";
 }
-
 void Server::acceptClient()
 {
 	int clientFd = accept(_serverSocket, NULL, NULL);
@@ -313,9 +312,9 @@ Channel *Server::getChannel(const std::string &name)
 		return NULL;
 }
 
-Channel *Server::addNewChannel(const std::string &name)
+Channel *Server::addNewChannel(const std::string &name, Client *admin)
 {
-	Channel	*out = new Channel(name);
+	Channel	*out = new Channel(name, admin);
 	_channels[name] = out;
 
 	return out;

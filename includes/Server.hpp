@@ -41,7 +41,7 @@ class Server
 			void tryRegistration(Client *client);
 			void execCommand(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args);
 			Channel	*getChannel(const std::string &name);
-			Channel	*addNewChannel(const std::string &name);
+			Channel	*addNewChannel(const std::string &name, Client *admin);
 			Client *getClientByNick(const std::string &nick);
 			std::string formatNumeric(std::string code, const std::string &target, const std::string &msg) const;
 			class NoValidServer : public std::exception 

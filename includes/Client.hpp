@@ -44,7 +44,7 @@ class Client
 		void addChannel(Channel *chan);
 		std::string	&getInBuf();
 		std::string	&getOutBuf();
-
+		bool	operator==(const Client& other);
 		Client(int fd);
 		~Client();
 };
