@@ -28,6 +28,8 @@ class CommandHandler
 		static void JOIN(Server *server, Client *client, const std::vector<std::string> &args);
 		static void MODE(Server *server, Client *client, const std::vector<std::string> &args);
 		static void INVITE(Server *server, Client *client, const std::vector<std::string> &args);
+		static void TOPIC(Server *server, Client *client, const std::vector<std::string> &args);
+		static void PRIVMSG(Server *server, Client *client, const std::vector<std::string> &args);
 	public:
 		CommandHandler();
 		CommandHandler(const CommandHandler &rhs);

@@ -32,6 +32,8 @@ void CommandHandler::populateMap()
 	_commands["ECHO"] = &CommandHandler::ECHO;
 	_commands["MODE"] = &CommandHandler::MODE;
 	_commands["INVITE"] = &CommandHandler::INVITE;
+	_commands["TOPIC"] = &CommandHandler::TOPIC;
+	_commands["PRIVMSG"] = &CommandHandler::PRIVMSG;
 }
 
 std::set<std::string> CommandHandler::populateRegCmds() const
@@ -46,6 +48,8 @@ std::set<std::string> CommandHandler::populateRegCmds() const
 	out.insert("QUIT");
 	out.insert("MODE");
 	out.insert("INVITE");
+	out.insert("TOPIC");
+	out.insert("PRIVMSG");
 
 	return out;
 }
@@ -67,9 +71,108 @@ void CommandHandler::execute(std::string cmd, Server *server, Client *client, co
 	}
 	it->second(server, client, args);
 }
+void CommandHandler::TOPIC(Server *server, Client *client, const std::vector<std::string> &args)
+{
+	if(args.size() < 2)
+	{
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "TOPIC:Not enough parameters"));
+		return;
+	}
+
+	const std::string &chanName = args[0];
+
+	if (!Channel::isValidChannelName(chanName))
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	Channel *chan = server->getChannel(chanName);
+	if(!chan)
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	if (!chan->getClientByFd(client->getFd()))
+		return;
+	if(!chan->isAdmin(*client))
+	{
+		server->queueMessage(client, server->formatNumeric("482", client->getNick(), chanName + " :You're not channel operator"));
+		return;
+	}
+	std::string topic(args[1]);
+	
+	for(size_t i = 2; i < args.size(); i++)
+	{
+		topic += " ";
+		topic += args[i];
+	}
+	chan->setTopic(topic);
+	std::cout << server->formatMessage("TOPIC", *client, chanName, topic ) << std::endl;
+	chan->broadcast(server, server->formatMessage("TOPIC", *client, chanName, topic ),client, true);
+
+}
+static void PrivmsgChannel(Server* server, Client *client, const std::vector<std::string> &args)
+{
+
+	const std::string &chanName = args[0];
+
+
+
+	Channel *chan = server->getChannel(chanName);
+	if(!chan)
+	{
+		server->queueMessage(client, server->formatNumeric("403", client->getNick(), chanName + " :No such channel"));
+		return;
+	}
+	std::string msg(args[1]);
+	for(size_t i = 2; i < args.size(); i++)
+	{
+		msg += " ";
+		msg += args[i];
+	}
+	chan->broadcast(server, server->formatMessage("PRIVMSG", *client, chanName, msg ),client, true);
+	
+}
+static void Privmsgclient(Server* server, Client *client, const std::vector<std::string> &args)
+{
+	const std::string &target = args[0];
+
+	Client *clientTarget = server->getClientByNick(target);
+	if(!clientTarget)
+	{
+		server->queueMessage(client, server->formatNumeric("401", args[1], " :No such nick"));
+		return ;
+	}
+	std::string msg(args[1]);
+	for(size_t i = 2; i < args.size(); i++)
+	{
+		msg += " ";
+		msg += args[i];
+	}
+	server->broadcast(server, server->formatMessage("PRIVMSG", *client,target, msg ),clientTarget);
+
+}
+void CommandHandler::PRIVMSG(Server *server, Client *client, const std::vector<std::string> &args)
+{
+
+	if(args.size() < 2)
+	{
+		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "PRIVMSG:Not enough parameters"));
+		return;
+	}
+
+	const std::string &target = args[0];
+
+	if(target[0] == '#')
+		PrivmsgChannel(server, client, args);
+	else
+		Privmsgclient(server, client, args);
+
+
+}
 void CommandHandler::INVITE(Server *server, Client *client, const std::vector<std::string> &args)
 {
-		if (args.size() < 2)
+	if (args.size() < 2)
 	{
 		server->queueMessage(client, server->formatNumeric("461", client->getNick(), "INVITE:Not enough parameters"));
 		return;
@@ -98,7 +201,7 @@ void CommandHandler::INVITE(Server *server, Client *client, const std::vector<st
 	Client *invited = server->getClientByNick(args[1]);
 	if(!invited)
 	{
-		server->queueMessage(client, server->formatNumeric("403", args[1], " :No such nick"));
+		server->queueMessage(client, server->formatNumeric("401", args[1], " :No such nick"));
 	}
 	if(chan->IsInvited(invited))
 		return;

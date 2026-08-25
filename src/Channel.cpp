@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include "iostream"
 
-Channel::Channel(const std::string &name, Client *admin) : _name(name), _admin(admin), _inviteMode(false) {}
+Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set") ,_admin(admin), _inviteMode(false) {}
 
 Channel::~Channel() {}
 
@@ -13,7 +13,12 @@ const std::string &Channel::getName() const
 {
 	return _name;
 }
+const std::string &Channel::getTopic() const {return(_topic);}
 
+void Channel::setTopic(const std::string& other)
+{
+	this->_topic = other;
+}
 std::vector<Client *> &Channel::getClients() { return _clients; }
 
 std::string Channel::getMembers() const

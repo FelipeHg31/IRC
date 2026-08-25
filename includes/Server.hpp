@@ -44,6 +44,7 @@ class Server
 			Channel	*addNewChannel(const std::string &name, Client *admin);
 			Client *getClientByNick(const std::string &nick);
 			std::string formatNumeric(std::string code, const std::string &target, const std::string &msg) const;
+			std::string formatMessage(const std::string &source,const Client &speaker , const std::string& chan, const std::string& msg ) const;
 			class NoValidServer : public std::exception 
 			{
 				private:
@@ -53,4 +54,5 @@ class Server
 				virtual const  char * what() const throw() {return(msg);};
 
 			};
+			void broadcast(Server *server, const std::string &msg, Client *target);
 };

@@ -248,7 +248,8 @@ void Server::queueMessage(Client *client, const std::string &msg)
 	}	
 }
 
-void Server::handlePollIn(int fd)
+void Server::
+handlePollIn(int fd)
 {
 	char buffer[512];
 	int bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
@@ -323,4 +324,13 @@ Channel *Server::addNewChannel(const std::string &name, Client *admin)
 std::string Server::formatNumeric(std::string code, const std::string &target, const std::string &msg) const
 {
 	return ":ircserv " + code + " " + target + " " + msg + "\r\n";
+}
+std::string Server::formatMessage(const std::string &source,const Client &speaker, const std::string & chan  , const std::string& msg ) const
+{
+	return(( ":"+ speaker.getNick() + "!" + speaker.getUser() + "@" + speaker.getHost() + " " + source + " " + chan + " :" + msg + "\r\n"));
+}
+
+void 		Server::broadcast(Server *server, const std::string &msg, Client *target)
+{
+		server->queueMessage(target, msg);
 }
