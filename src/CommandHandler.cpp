@@ -90,7 +90,7 @@ void CommandHandler::TOPIC(Server *server, Client *client, const std::vector<std
 	}
 	if (!chan->getClientByFd(client->getFd()))
 		return;
-	if(!chan->isAdmin(*client))
+	if(!chan->isAdmin(*client) && chan->AdminTopicMode())
 	{
 		server->sendNumericMsg(client, "482", client->getNick(), chanName + " :You're not channel operator");
 		return;
@@ -231,9 +231,9 @@ void CommandHandler::MODE(Server *server, Client *client, const std::vector<std:
 		server->sendNumericMsg(client, "482", client->getNick(), chanName + " :You're not channel operator");
 		return;
 	}
-	std::string option[2] = {"+i", "-i"};
+	std::string option[4] = {"+i", "-i", "+t", "-t"};
 	size_t i = 0;
-	for (; i < 2; i++)
+	for (; i < 4; i++)
 	{
 			if(option[i] == args[1])
 				break;
@@ -245,6 +245,12 @@ void CommandHandler::MODE(Server *server, Client *client, const std::vector<std:
 		break;
 	case 1:
 		chan->putDownInviteMode();
+		break;
+	case 2:
+		chan->putUpAdminMode();
+		break;
+	case 3:
+		chan->putDownAdminMode();
 		break;
 	default:
 		server->sendNumericMsg(client, "472", client->getNick(), args[2] + " : is unkown mode char for me");

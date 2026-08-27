@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include "iostream"
 
-Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set") ,_admin(admin), _inviteMode(false) {}
+Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set") ,_admin(admin), _inviteMode(false) , _onlyAdminTopic(true){}
 
 Channel::~Channel() {}
 
@@ -99,6 +99,15 @@ void Channel::broadcast(Server *server, const std::string &msg, Client *sender, 
 			continue;
 		server->queueMessage(_clients[i], msg);
 	}
+}
+bool Channel::AdminTopicMode(){return(_onlyAdminTopic);}
+void Channel::putUpAdminMode()
+{
+	this->_onlyAdminTopic = true;
+}
+void Channel::putDownAdminMode()
+{
+	this->_onlyAdminTopic = false; 
 }
 void Channel::putDownInviteMode()
 {
