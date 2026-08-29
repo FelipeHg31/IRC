@@ -302,9 +302,9 @@ Client *Server::getClientByNick(const std::string &nick)
 	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
 		if (it->second->getNick() == nick)
-			return (it->second);
+			return it->second;
 	}
-	return (NULL);
+	return NULL;
 }
 
 Channel *Server::getChannel(const std::string &name)
@@ -336,5 +336,5 @@ std::string Server::formatMessage(const std::string &source,const Client &speake
 
 void 		Server::broadcast(Server *server, const std::string &msg, Client *target)
 {
-		server->queueMessage(target, msg);
+	return	server->queueMessage(target, msg);
 }
