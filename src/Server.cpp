@@ -291,7 +291,7 @@ void	Server::tryRegistration(Client	*client)
 	const std::string &nick = client->getNick();
 
 	queueMessage(client, formatNumeric("001", nick, ":Bienvenido al Internet Relay Network " + client->getPrefix()));
-	queueMessage(client, formatNumeric("002", nick, ":Tu host es ircserv, ejectuando version 1.0"));
+	queueMessage(client, formatNumeric("002", nick, ":Tu host es " + _name + ", ejectuando version 1.0"));
 	queueMessage(client, formatNumeric("003", nick, ":Este servidor se creó " + _creationDate));
 	queueMessage(client, formatNumeric("004", nick, "CONECTADO! YABBADABBADOOO!"));
 }
