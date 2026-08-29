@@ -303,7 +303,7 @@ void CommandHandler::CAP(Server *server, Client *client, const std::vector<std::
 
 	std::string nick = client->getNick().empty() ? "*" : client->getNick();
 	if (args[0] == "LS")
-		server->queueMessage(client, ":ircserv CAP " + nick + " LS :\r\n");
+		server->queueMessage(client, ":" + server->getName() + " CAP " + nick + " LS :\r\n");
 }
 
 void CommandHandler::PASS(Server *server, Client *client, const std::vector<std::string> &args)
