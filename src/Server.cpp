@@ -56,22 +56,11 @@ bool Server::init()
 	addr.sin_addr.s_addr = INADDR_ANY;
 
 	if (bind(_serverSocket, (sockaddr*)&addr, sizeof(addr)) < 0)
-	{
-		std::cerr << "Error: bind() failed" << std::endl;
-		return false;
-	}
-
+		throw std::runtime_error("Error: bind() failed");
 	if (listen(_serverSocket, 10) < 0)
-	{
-		std::cerr << "Error: listen() failed" << std::endl;
-		return false;
-	}
-
+		throw std::runtime_error("Error: listen() failed");
 	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) < 0)
-	{
-		std::cerr << "Error: fcntl() failed" << std::endl;
-		return false;
-	}
+		throw std::runtime_error("Error: fcntl() failed");
 
 	pollfd p;
 	p.fd = _serverSocket;
