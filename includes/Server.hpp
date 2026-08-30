@@ -13,13 +13,14 @@ class Channel;
 
 typedef std::map<int, Client *> ClientMap;
 typedef std::map<std::string, Channel *> ChannelMap;
+typedef std::vector<struct pollfd> FdVector;
 
 class Server
 {
 	private:
 		int	_serverSocket;
 		int	_port;
-		std::vector<struct pollfd>	_fds; 
+		FdVector	_fds; 
 		ClientMap	_clients;
 		ChannelMap	_channels;
 		std::string					_password;

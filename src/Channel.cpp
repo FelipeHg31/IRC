@@ -52,6 +52,9 @@ void Channel::removeClient(Client *client)
 			_clients.erase(_clients.begin() + i);
 		}
 	}
+	//ADMIN DEBERIA SER UN SET! OperatorSet
+	if (_admin == client)
+		_admin = NULL;
 
 }
 void Channel::Inviteclient(Client *client)
