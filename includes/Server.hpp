@@ -52,11 +52,10 @@ class Server
 		class NoValidServer : public std::exception 
 		{
 			private:
-			const char *msg;
+				const char *msg;
 			public:
-			NoValidServer(const char *error)  : msg(error){}
-			virtual const  char * what() const throw() {return(msg);};
+				NoValidServer(const char *error)  : msg(error){}
+				virtual const  char * what() const throw() {return(msg);};
 
 		};
-		void broadcast(Server *server, const std::string &msg, Client *target);
 };

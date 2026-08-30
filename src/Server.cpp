@@ -319,7 +319,3 @@ std::string Server::formatMessage(const std::string &source,const Client &speake
 	return(( ":"+ speaker.getNick() + "!" + speaker.getUser() + "@" + speaker.getHost() + " " + source + " " + chan + " :" + msg + "\r\n"));
 }
 
-void 		Server::broadcast(Server *server, const std::string &msg, Client *target)
-{
-	return	server->queueMessage(target, msg);
-}

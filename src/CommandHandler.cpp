@@ -126,7 +126,10 @@ static void PrivmsgChannel(Server* server, Client *client, const std::vector<std
 		msg += " ";
 		msg += args[i];
 	}
-	chan->broadcast(server, server->formatMessage("PRIVMSG", *client, chanName, msg ),client, false);
+
+	const std::string reply(server->formatMessage("PRIVMSG", *client, chanName, msg ));
+
+	chan->broadcast(server, reply,client, false);
 	
 }
 static void Privmsgclient(Server* server, Client *client, const std::vector<std::string> &args)
@@ -145,8 +148,10 @@ static void Privmsgclient(Server* server, Client *client, const std::vector<std:
 		msg += " ";
 		msg += args[i];
 	}
-	server->broadcast(server, server->formatMessage("PRIVMSG", *client,target, msg ),clientTarget);
 
+	const std::string reply(server->formatMessage("PRIVMSG", *client, target, msg));
+
+	server->queueMessage(clientTarget, reply);
 }
 void CommandHandler::PRIVMSG(Server *server, Client *client, ArgsList args)
 {
