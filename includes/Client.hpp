@@ -6,6 +6,8 @@
 
 class Channel;
 
+typedef std::set<Channel *> ChannelSet;
+
 class Client
 {
 	private:
@@ -16,7 +18,7 @@ class Client
 		std::string _username;
 		std::string	_realname;
 		std::string	_hostname;
-		std::set<Channel *>	_channels;
+		ChannelSet	_channels;
 		bool _passGiven;
 		bool _registered;
 	public:
@@ -41,7 +43,7 @@ class Client
 		void setRegistered();
 
 		std::set<Client *> getChannelPeers() const;
-		std::set<Channel *> &getChannels();
+		ChannelSet &getChannels();
 		void addChannel(Channel *chan);
 		std::string	&getInBuf();
 		std::string	&getOutBuf();

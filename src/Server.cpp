@@ -213,8 +213,8 @@ void Server::removeClient(int fd, const std::string &reason)
 				queueMessage(*peerIt, notice);
 	}
 
-	std::set<Channel *> &channels = client->getChannels();
-	std::set<Channel *>::iterator chanIt;
+	ChannelSet &channels = client->getChannels();
+	ChannelSet::iterator chanIt;
 
 	for (chanIt = channels.begin(); chanIt != channels.end(); chanIt++)
 		(*chanIt)->removeClient(client);
