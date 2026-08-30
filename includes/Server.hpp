@@ -39,7 +39,7 @@ class Server
 		~Server();
 
 		void start();
-		void sendNumericMsg(Client *client, const std::string &code, const std::string &target, const std::string &msg);
+		void sendNumericMsg(Client *client, const std::string &code, const std::string &msg);
 		void queueMessage(Client *client, const std::string &msg);
 		void removeClient(int fd, const std::string &reason = "Client disconnected.");
 		void tryRegistration(Client *client);

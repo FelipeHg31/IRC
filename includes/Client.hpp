@@ -26,7 +26,8 @@ class Client
 		const std::string &getUser() const;
 		const std::string &getRnam() const;
 		const std::string &getHost() const;
-
+		
+		std::string getTarget() const;
 		std::string	getPrefix() const;
 
 		void setNick(const std::string &nick);
@@ -44,7 +45,7 @@ class Client
 		void addChannel(Channel *chan);
 		std::string	&getInBuf();
 		std::string	&getOutBuf();
-		bool	operator==(const Client& other);
+		bool	operator==(const Client& rhs);
 		Client(int fd);
 		~Client();
 };

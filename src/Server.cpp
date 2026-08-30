@@ -235,9 +235,9 @@ void Server::removeClient(int fd, const std::string &reason)
 	std::cout << "Client disconnected: fd=" << fd << " host=" << client->getHost() << " reason=" << reason << std::endl;
 }
 
-void Server::sendNumericMsg(Client *client, const std::string &code, const std::string &target, const std::string &msg)
+void Server::sendNumericMsg(Client *client, const std::string &code, const std::string &msg)
 {
-	queueMessage(client, formatNumeric(code, target, msg));
+	queueMessage(client, formatNumeric(code, client->getTarget(), msg));
 }
 
 void Server::queueMessage(Client *client, const std::string &msg)
@@ -288,12 +288,10 @@ void	Server::tryRegistration(Client	*client)
 		return;
 	client->setRegistered();
 
-	const std::string &nick = client->getNick();
-
-	queueMessage(client, formatNumeric("001", nick, ":Bienvenido al Internet Relay Network " + client->getPrefix()));
-	queueMessage(client, formatNumeric("002", nick, ":Tu host es " + _name + ", ejectuando version 1.0"));
-	queueMessage(client, formatNumeric("003", nick, ":Este servidor se creó " + _creationDate));
-	queueMessage(client, formatNumeric("004", nick, "CONECTADO! YABBADABBADOOO!"));
+	sendNumericMsg(client, "001", ":Bienvenido al Internet Relay Network " + client->getPrefix());
+	sendNumericMsg(client, "002", ":Tu host es " + _name + ", ejectuando version 1.0");
+	sendNumericMsg(client, "003", ":Este servidor se creó " + _creationDate);
+	sendNumericMsg(client, "004", "CONECTADO! YABBADABBADOOO!");
 }
 
 Client *Server::getClientByNick(const std::string &nick)
