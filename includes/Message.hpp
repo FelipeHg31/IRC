@@ -3,9 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <Server.hpp>
 
 class Client;
-class Server;
 
 class Message
 {
@@ -19,5 +19,5 @@ class Message
 		Message &operator=(const Message &rhs);
 		~Message();
 		const std::string	&getCmd() const;
-		const std::vector<std::string>	&getArgs() const;
+		ArgsList getArgs() const;
 };

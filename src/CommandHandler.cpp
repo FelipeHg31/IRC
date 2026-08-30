@@ -49,7 +49,7 @@ std::set<std::string> CommandHandler::populateRegCmds() const
 
 	return out;
 }
-void CommandHandler::execute(std::string cmd, Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::execute(std::string cmd, Server *server, Client *client, ArgsList args)
 {
 	static std::set<std::string>	registrationCmds = populateRegCmds();
 	std::string	nick = client->getNick().empty() ? "*" : client->getNick();
@@ -67,7 +67,7 @@ void CommandHandler::execute(std::string cmd, Server *server, Client *client, co
 	}
 	it->second(server, client, args);
 }
-void CommandHandler::TOPIC(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::TOPIC(Server *server, Client *client, ArgsList args)
 {
 	if(args.size() < 2)
 	{
@@ -148,7 +148,7 @@ static void Privmsgclient(Server* server, Client *client, const std::vector<std:
 	server->broadcast(server, server->formatMessage("PRIVMSG", *client,target, msg ),clientTarget);
 
 }
-void CommandHandler::PRIVMSG(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::PRIVMSG(Server *server, Client *client, ArgsList args)
 {
 
 	if(args.size() < 2)
@@ -166,7 +166,7 @@ void CommandHandler::PRIVMSG(Server *server, Client *client, const std::vector<s
 
 
 }
-void CommandHandler::INVITE(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 {
 	if (args.size() < 2)
 	{
@@ -203,28 +203,29 @@ void CommandHandler::INVITE(Server *server, Client *client, const std::vector<st
 		return;
 	chan->Inviteclient(invited);
 }
-void CommandHandler::MODE(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::MODE(Server *server, Client *client, ArgsList args)
 {
 	
-	std::string chanName = args[0];
 
 	if (args.size() < 2)
 	{
 		server->sendNumericMsg(client, "461", client->getNick(), "MODE:Not enough parameters");
 		return;
 	}
-
 	if (!client->isRegistered())
 	{
 		server->sendNumericMsg(client, "462", client->getNick(), ":You may not reregister");
 		return;
 	}
-	if (!Channel::isValidChannelName(chanName))
+
+	std::string chanName = args[0];
+	Channel *chan = server->getChannel(chanName);
+
+	if (!chan)
 	{
 		server->sendNumericMsg(client, "403", client->getNick(), chanName + " :No such channel");
 		return;
 	}
-	Channel *chan = server->getChannel(chanName);
 
 	if(!chan->isAdmin(*client))
 	{
@@ -253,7 +254,7 @@ void CommandHandler::MODE(Server *server, Client *client, const std::vector<std:
 	
 
 }
-void CommandHandler::ECHO(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::ECHO(Server *server, Client *client, ArgsList args)
 {
 	std::string reply;
 	for (size_t i = 0; i < args.size(); i++)
@@ -287,7 +288,7 @@ bool CommandHandler::isValidNickChar(char c, bool isFirst)
 	return (isalnum(static_cast<unsigned char>(c)) || c == '_' || c == '-');
 }
 
-void CommandHandler::PING(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::PING(Server *server, Client *client, ArgsList args)
 {
 	if (args.empty())
 		return;
@@ -296,7 +297,7 @@ void CommandHandler::PING(Server *server, Client *client, const std::vector<std:
 	server->queueMessage(client, "PONG " + server->getName());
 }
 
-void CommandHandler::CAP(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::CAP(Server *server, Client *client, ArgsList args)
 {
 	if (args.empty())
 		return;
@@ -306,7 +307,7 @@ void CommandHandler::CAP(Server *server, Client *client, const std::vector<std::
 		server->queueMessage(client, ":" + server->getName() + " CAP " + nick + " LS :\r\n");
 }
 
-void CommandHandler::PASS(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::PASS(Server *server, Client *client, ArgsList args)
 {
 	std::string	nick = client->getNick().empty() ? "*" : client->getNick();
 
@@ -330,7 +331,7 @@ void CommandHandler::PASS(Server *server, Client *client, const std::vector<std:
 	client->setPassGiven();
 }
 
-void CommandHandler::NICK(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::NICK(Server *server, Client *client, ArgsList args)
 {
 	std::string	nick = client->getNick().empty() ? "*" : client->getNick();
 	if (args.size() < 1 || args[0].empty())
@@ -366,7 +367,7 @@ void CommandHandler::NICK(Server *server, Client *client, const std::vector<std:
 	server->tryRegistration(client);
 }
 
-void CommandHandler::USER(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::USER(Server *server, Client *client, ArgsList args)
 {
 	std::string	nick = client->getNick().empty() ? "*" : client->getNick();
 
@@ -405,14 +406,14 @@ void CommandHandler::USER(Server *server, Client *client, const std::vector<std:
 	server->tryRegistration(client);
 }
 
-void CommandHandler::QUIT(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::QUIT(Server *server, Client *client, ArgsList args)
 {
 	std::string reason = args.empty() ? "Client Quit" : args[0];
 
 	server->removeClient(client->getFd(), reason);
 }
 
-void CommandHandler::JOIN(Server *server, Client *client, const std::vector<std::string> &args)
+void CommandHandler::JOIN(Server *server, Client *client, ArgsList args)
 {
 	if (args.size() < 1)
 	{

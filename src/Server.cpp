@@ -23,7 +23,7 @@ Server::Server(int port, const std::string &password, const std::string &name): 
 }
 Server::~Server()
 {
-	std::map<int, Client *>::iterator clientIt;
+	ClientMap::iterator clientIt;
 	for (clientIt = _clients.begin(); clientIt != _clients.end(); clientIt++)
 	{
 		close(clientIt->first);
@@ -31,7 +31,7 @@ Server::~Server()
 	}
 	_clients.clear();
 
-	std::map<std::string, Channel *>::iterator chanIt;
+	ChannelMap::iterator chanIt;
 	for (chanIt = _channels.begin(); chanIt != _channels.end(); chanIt++)
 		delete chanIt->second;
 	_channels.clear();
@@ -298,7 +298,7 @@ void	Server::tryRegistration(Client	*client)
 
 Client *Server::getClientByNick(const std::string &nick)
 {
-	std::map<int, Client *>::iterator it;
+	ClientMap::iterator it;
 	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
 		if (it->second->getNick() == nick)
@@ -309,7 +309,7 @@ Client *Server::getClientByNick(const std::string &nick)
 
 Channel *Server::getChannel(const std::string &name)
 {
-	std::map<std::string, Channel *>::iterator	it;
+	ChannelMap::iterator	it;
 	it = _channels.find(name);
 	if (it != _channels.end())
 		return it->second;

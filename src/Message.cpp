@@ -49,5 +49,5 @@ Message &Message::operator=(const Message &rhs)
 
 const std::string &Message::getCmd() const { return _cmd; }
 
-const std::vector<std::string> &Message::getArgs() const { return _args; } 
+ArgsList Message::getArgs() const { return _args; } 
 
