@@ -27,7 +27,7 @@ class Server
 		std::string					_name;
 		CommandHandler				_cmdHandler;
 		static std::string			resolveHost(int fd);
-		bool init();
+		void init();
 		void acceptClient();
 		void handlePollIn(int fd);
 		void handlePollOut(int fd, std::vector<int> &toDelete);

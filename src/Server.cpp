@@ -44,7 +44,7 @@ const std::string &Server::getPass() const { return _password; }
 
 const std::string &Server::getName() const { return _name; }
 
-bool Server::init()
+void Server::init()
 {
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -66,13 +66,11 @@ bool Server::init()
 	p.fd = _serverSocket;
 	p.events = POLLIN;
 	_fds.push_back(p);
-	return true;
 }
 
 void Server::start()
 {
-	if (!init())
-		return ;
+	init();
 	while (true)
 	{
 		int ret = poll(&_fds[0], _fds.size(), -1);
