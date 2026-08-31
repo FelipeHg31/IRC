@@ -293,7 +293,7 @@ void CommandHandler::MODE(Server *server, Client *client, const std::vector<std:
 			server->sendNumericMsg(client, "472", client->getNick(), args[1][i] + " : is unkown mode char for me");
 			return;
 		}
-		else if(actualArg   >= args.size() )
+		else if(actualArg   >= args.size() && j  >= 2 )
 		{
 			server->sendNumericMsg(client, "461", client->getNick(),"MODE : Not enought parametres");
 			return ;
