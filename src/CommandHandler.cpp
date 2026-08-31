@@ -308,7 +308,11 @@ void CommandHandler::CAP(Server *server, Client *client, ArgsList args)
 		return;
 
 	if (args[0] == "LS")
-		server->queueMessage(client, ":" + server->getName() + " CAP " + client->getNick() + " LS :\r\n");
+	{
+		const std::string reply(":" + server->getName()
+			+ " CAP " + client->getNick() + " LS :\r\n");
+		server->queueMessage(client, reply);
+	}
 }
 
 void CommandHandler::PASS(Server *server, Client *client, ArgsList args)
@@ -342,20 +346,20 @@ void CommandHandler::NICK(Server *server, Client *client, ArgsList args)
 	}
 	if (args[0].size() > 9)
 	{
-		server->sendNumericMsg(client, "432", args[0] + " :Erroneous nickname");
+		server->sendNumericMsg(client, "432", args[0] + " :Invalid nickname");
 		return;
 	}
 	for (size_t i = 0; i < args[0].size(); i++)
 	{
 		if (!isValidNickChar(args[0][i], i == 0))
 		{
-			server->sendNumericMsg(client, "432", args[0] + " :Erroneous nickname");
+			server->sendNumericMsg(client, "432", args[0] + " :Invalid nickname");
 			return;
 		}
 	}
 	if (server->getClientByNick(args[0]))
 	{
-		server->sendNumericMsg(client, "433", args[0] + " :Nickname is already in use");
+		server->sendNumericMsg(client, "433", args[0] + " :Nickname already in use");
 		return;
 	}
 
@@ -441,7 +445,7 @@ void CommandHandler::JOIN(Server *server, Client *client, ArgsList args)
 	{
 		if(!chan->IsInvited(client))
 		{
-			server->sendNumericMsg(client, "473", chanName + " :Cannot join channel (+i)");
+			server->sendNumericMsg(client, "473", chanName + " :Can't join channel (+i)");
 			return ;
 		}
 		chan->RemoveInvite(client);			
