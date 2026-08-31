@@ -34,6 +34,7 @@ void CommandHandler::populateMap()
 	_commands["INVITE"] = &CommandHandler::INVITE;
 	_commands["TOPIC"] = &CommandHandler::TOPIC;
 	_commands["PRIVMSG"] = &CommandHandler::PRIVMSG;
+	_commands["WHO"] = &CommandHandler::WHO;
 }
 
 std::set<std::string> CommandHandler::populateRegCmds() const
@@ -459,5 +460,39 @@ void CommandHandler::JOIN(Server *server, Client *client, ArgsList args)
 	server->sendNumericMsg(client, "331", chanName + " :No topic is set");
 	server->sendNumericMsg(client, "353", "= " + chanName + " :" + chan->getMembers());
 	server->sendNumericMsg(client, "366", chanName + " :End of /NAMES list");
+}
+
+void CommandHandler::WHO(Server *server, Client *client, ArgsList args)
+{
+	if (args.empty())
+	{
+		server->sendNumericMsg(client, "315", "* :End of WHO list");
+		return;
+	}
+
+	const std::string &chanName = args[0];
+	Channel *chan = server->getChannel(chanName);
+
+	if (!chan || !chan->getClientByFd(client->getFd()))
+	{
+		server->sendNumericMsg(client, "315", chanName + " :End of WHO list");
+		return;
+	}
+
+	std::vector<Client *> &members = chan->getClients();
+	for (size_t i = 0; i < members.size(); i++)
+	{
+		Client *member = members[i];
+		std::string flags = "H";
+		if (chan->isAdmin(*member))
+			flags += "@";
+
+		std::string line = chanName + " " + member->getUser() + " " + member->getHost() + " "
+			+ server->getName() + " " + member->getNick() + " " + flags + " :0 " + member->getRnam();
+
+		server->sendNumericMsg(client, "352", line);
+	}
+
+	server->sendNumericMsg(client, "315", chanName + " :End of WHO list");
 }
 
