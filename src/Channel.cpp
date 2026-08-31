@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include "iostream"
 
-Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set"), _inviteMode(false) 
+Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set"), _inviteMode(false), _passwordMode(false), _userLimit(0)
 {
 	if (!admin)
 		throw std::runtime_error("Something broke.");
@@ -18,7 +18,20 @@ const std::string &Channel::getName() const
 {
 	return _name;
 }
-const std::string &Channel::getTopic() const {return(_topic);}
+
+const std::string &Channel::getPassword() const { return _password; }
+
+unsigned int	Channel::getUserLimit() const { return _userLimit; }
+
+void Channel::setUserLimit(int limit)
+{
+	if (limit > 0 && limit < 100)
+		_userLimit = limit;
+}
+
+bool Channel::hasPassword() const { return _passwordMode; }
+
+const std::string &Channel::getTopic() const { return _topic; }
 
 void Channel::setTopic(const std::string& other)
 {
@@ -49,7 +62,7 @@ void Channel::removeClient(Client *client)
 {
 	if (!client)
 		return;
-		
+
 	std::vector<Client *>::iterator it;
 
 	for (it = _clients.begin(); it != _clients.end(); it++)

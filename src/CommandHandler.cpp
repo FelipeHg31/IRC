@@ -443,24 +443,46 @@ void CommandHandler::JOIN(Server *server, Client *client, ArgsList args)
 	if (chan && chan->getClientByFd(client->getFd()))
 		return;
 
-	if (!chan)
-		chan = server->addNewChannel(chanName, client);
-	if(chan->inviteMode())
+	if (chan)
 	{
-		if(!chan->IsInvited(client))
+		if (chan->getUserLimit() != 0 && chan->getClients().size() >= chan->getUserLimit())
 		{
-			server->sendNumericMsg(client, "473", chanName + " :Can't join channel (+i)");
-			return ;
+			server->sendNumericMsg(client, "471", chanName + " :Cannot join channel (+l)");
+			return;
 		}
-		chan->RemoveInvite(client);			
+		if (chan->hasPassword())
+		{
+			std::string providedKey = args.size() > 1 ? args[1] : "";
+			if (providedKey != chan->getPassword())
+			{
+				server->sendNumericMsg(client, "475", chanName + " :Cannot join channel (+k)");
+				return;
+			}
+		}
+		if (chan->inviteMode())
+		{
+			if (!chan->IsInvited(client))
+			{
+				server->sendNumericMsg(client, "473", chanName + " :Can't join channel (+i)");
+				return;
+			}
+			chan->RemoveInvite(client);
+		}
 	}
+	else
+		chan = server->addNewChannel(chanName, client);
+
 	chan->addClient(client);
 	client->addChannel(chan);
 
 	std::string joinMsg = ":" + client->getPrefix() + " JOIN :" + chanName + "\r\n";
 	chan->broadcast(server, joinMsg, client, true);
 
-	server->sendNumericMsg(client, "331", chanName + " :No topic is set");
+	if (chan->getTopic().empty())
+		server->sendNumericMsg(client, "331", chanName + " :No topic is set");
+	else
+		server->sendNumericMsg(client, "332", chanName + " :" + chan->getTopic());
+
 	server->sendNumericMsg(client, "353", "= " + chanName + " :" + chan->getMembers());
 	server->sendNumericMsg(client, "366", chanName + " :End of /NAMES list");
 }

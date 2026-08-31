@@ -11,11 +11,14 @@ class Channel
 {
 private:
 	const std::string _name;
+	std::string	_password;
 	std::string _topic;
 	std::set<Client *>	_operators;
 	std::vector<Client *> _clients;
 	std::set<Client*> _invited;
 	bool _inviteMode;
+	bool _passwordMode;
+	unsigned int	_userLimit;
 	Channel();
 	Channel(const Channel &rhs);
 	Channel &operator=(const Channel &rhs);
@@ -26,6 +29,10 @@ public:
 	void	addOperator(Client *client);
 	void	removeOperator(Client *client);
 	const std::string &getName() const;
+	const std::string &getPassword() const;
+	unsigned int getUserLimit() const;
+	void setUserLimit(int limit);
+	bool hasPassword() const;
 	const std::string &getTopic() const;
 	std::vector<Client *> &getClients();
 	std::string	getMembers() const;
