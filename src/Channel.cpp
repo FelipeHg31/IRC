@@ -7,6 +7,8 @@
 
 Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set"), _inviteMode(false) 
 {
+	if (!admin)
+		throw std::runtime_error("Something broke.");
 	_operators.insert(admin);
 }
 
@@ -28,62 +30,57 @@ std::string Channel::getMembers() const
 {
 	std::string names;
 
-	for (size_t i = 0; i < _clients.size(); i++)
+	std::vector<Client *>::const_iterator it;
+	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
-		names += _clients[i]->getNick();
-		if (i + 1 < _clients.size())
+		if (it != _clients.begin())
 			names += " ";
+		names += (*it)->getNick();
 	}
 	return names;
 }
-
-std::set<Client *> &Channel::getOperators() { return _operators; }
 
 void Channel::addClient(Client *client)
 {
 	_clients.push_back(client);
 }
 
-
 void Channel::removeClient(Client *client)
 {
 	if (!client)
 		return;
-	for (size_t i = 0; i < _clients.size(); i++)
+		
+	std::vector<Client *>::iterator it;
+
+	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
-		if (_clients[i] == client)
+		if (*it == client)
 		{
-			_clients.erase(_clients.begin() + i);
+			_clients.erase(it);
+			break;
 		}
 	}
-
-	std::set<Client *>::iterator it;
-
-	it = _operators.find(client);
-	if (it != _operators.end())
-		_operators.erase(it);
-
+	std::set<Client *>::iterator itOps = _operators.find(client);
+	if (itOps != _operators.end())
+		_operators.erase(itOps);
 }
 void Channel::Inviteclient(Client *client)
 {
-	this->_invited.push_back(client);
+	this->_invited.insert(client);
 }
 void Channel::RemoveInvite(Client *client)
 {
 	if (!client)
 		return;
-	for (size_t i = 0; i < _invited.size(); i++)
-	{
-		if (_invited[i] == client)
-		{
-			_invited.erase(_invited.begin() + i);
-		}
-	}
 
+	std::set<Client *>::iterator it = _invited.find(client);
+
+	if (it != _invited.end())
+		_invited.erase(it);
 }
-Client *Channel::getInvitedbyFd(int fd)
+Client *Channel::getInvitedbyFd(int fd) const
 {
-	std::vector<Client *>::iterator it;
+	std::set<Client *>::const_iterator it;
 	for (it = _invited.begin(); it != _invited.end(); it++)
 	{
 		if ((*it)->getFd() == fd)
@@ -91,9 +88,9 @@ Client *Channel::getInvitedbyFd(int fd)
 	}
 	return(NULL);
 }
-Client *Channel::getClientByFd(int fd)
+Client *Channel::getClientByFd(int fd) const
 {
-	std::vector<Client *>::iterator it;
+	std::vector<Client *>::const_iterator it;
 	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
 		if ((*it)->getFd() == fd)
@@ -103,11 +100,13 @@ Client *Channel::getClientByFd(int fd)
 }
 void Channel::broadcast(Server *server, const std::string &msg, Client *sender, bool toAll)
 {
-	for (size_t i = 0; i < _clients.size(); i++)
+	std::vector<Client *>::iterator it;
+
+	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
-		if (_clients[i] == sender && !toAll)
+		if (*it == sender && !toAll)
 			continue;
-		server->queueMessage(_clients[i], msg);
+		server->queueMessage(*it, msg);
 	}
 }
 void Channel::putDownInviteMode()
@@ -135,15 +134,18 @@ bool Channel::isValidChannelName(const std::string &name)
 }
 bool Channel::IsInvited(Client *other)
 {
-	if(!getInvitedbyFd(other->getFd()))
+	if(!other || !getInvitedbyFd(other->getFd()))
 		return(false);
 	return(true);
 }
 
 bool Channel::isAdmin(Client &client)
 {
-
 	if (_operators.find(&client) != _operators.end())
 		return true;
 	return false;
 }
+
+void Channel::addOperator(Client *client) { _operators.insert(client); }
+
+void Channel::removeOperator(Client *client) { _operators.erase(client); }

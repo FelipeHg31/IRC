@@ -13,8 +13,8 @@ private:
 	const std::string _name;
 	std::string _topic;
 	std::set<Client *>	_operators;
-	std::vector<Client*> _clients;
-	std::vector<Client*> _invited;
+	std::vector<Client *> _clients;
+	std::set<Client*> _invited;
 	bool _inviteMode;
 	Channel();
 	Channel(const Channel &rhs);
@@ -23,13 +23,14 @@ public:
 	Channel(const std::string &name, Client *admin);
 	~Channel();
 	void setTopic(const std::string& topic);
-	std::set<Client *> &getOperators();
+	void	addOperator(Client *client);
+	void	removeOperator(Client *client);
 	const std::string &getName() const;
 	const std::string &getTopic() const;
 	std::vector<Client *> &getClients();
 	std::string	getMembers() const;
-	Client *getClientByFd(int fd);
-	Client *getInvitedbyFd(int fd);
+	Client *getClientByFd(int fd) const;
+	Client *getInvitedbyFd(int fd) const;
 	void  Inviteclient(Client* other);
 	void  RemoveInvite(Client* other);
 	void addClient(Client *client);

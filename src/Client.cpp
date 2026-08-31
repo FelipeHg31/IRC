@@ -45,8 +45,7 @@ std::set<Client *> Client::getChannelPeers() const
 	for (chanIt = _channels.begin(); chanIt != _channels.end(); chanIt++)
 	{
 		std::vector<Client *> &members = (*chanIt)->getClients();
-		for (size_t i = 0; i < members.size(); i++)
-			peers.insert(members[i]);
+		peers.insert(members.begin(), members.end());
 	}
 	return peers;
 }
