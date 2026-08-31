@@ -12,7 +12,7 @@ class Channel
 private:
 	const std::string _name;
 	std::string _topic;
-	Client *_admin;
+	std::set<Client *>	_operators;
 	std::vector<Client*> _clients;
 	std::vector<Client*> _invited;
 	bool _inviteMode;
@@ -23,7 +23,7 @@ public:
 	Channel(const std::string &name, Client *admin);
 	~Channel();
 	void setTopic(const std::string& topic);
-	const Client &getAdmin();
+	std::set<Client *> &getOperators();
 	const std::string &getName() const;
 	const std::string &getTopic() const;
 	std::vector<Client *> &getClients();

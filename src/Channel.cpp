@@ -5,7 +5,10 @@
 #include <sys/socket.h>
 #include "iostream"
 
-Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set") ,_admin(admin), _inviteMode(false) {}
+Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set"), _inviteMode(false) 
+{
+	_operators.insert(admin);
+}
 
 Channel::~Channel() {}
 
@@ -34,7 +37,8 @@ std::string Channel::getMembers() const
 	return names;
 }
 
-const Client &Channel::getAdmin(){return(*_admin);}
+std::set<Client *> &Channel::getOperators() { return _operators; }
+
 void Channel::addClient(Client *client)
 {
 	_clients.push_back(client);
@@ -52,9 +56,12 @@ void Channel::removeClient(Client *client)
 			_clients.erase(_clients.begin() + i);
 		}
 	}
-	//ADMIN DEBERIA SER UN SET! OperatorSet
-	if (_admin == client)
-		_admin = NULL;
+
+	std::set<Client *>::iterator it;
+
+	it = _operators.find(client);
+	if (it != _operators.end())
+		_operators.erase(it);
 
 }
 void Channel::Inviteclient(Client *client)
@@ -111,7 +118,8 @@ void Channel::putUpInviteMode()
 {
 	this->_inviteMode = true;
 }
-bool Channel::inviteMode(){return(this->_inviteMode);}
+bool Channel::inviteMode() { return this->_inviteMode; }
+
 bool Channel::isValidChannelName(const std::string &name)
 {
 	if (name.size() < 2 || name.size() > 50)
@@ -125,14 +133,17 @@ bool Channel::isValidChannelName(const std::string &name)
 	}
 	return true;
 }
-bool Channel::IsInvited(Client* other)
+bool Channel::IsInvited(Client *other)
 {
 	if(!getInvitedbyFd(other->getFd()))
 		return(false);
 	return(true);
 }
 
-bool Channel::isAdmin( Client& other)
+bool Channel::isAdmin(Client &client)
 {
-	return(other == this->getAdmin() );
+
+	if (_operators.find(&client) != _operators.end())
+		return true;
+	return false;
 }
