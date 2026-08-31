@@ -5,7 +5,8 @@
 #include <sys/socket.h>
 #include "iostream"
 
-Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set") ,_admin(admin), _inviteMode(false) , _onlyAdminTopic(true){}
+Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set") , _password("No password"),
+_admin(admin), _inviteMode(false) , _onlyAdminTopic(true), _passwordMode(false){}
 
 Channel::~Channel() {}
 
@@ -14,7 +15,11 @@ const std::string &Channel::getName() const
 	return _name;
 }
 const std::string &Channel::getTopic() const {return(_topic);}
-
+const std::string &Channel::getPassword() const {return(_password);}
+void Channel::setPassword(const std::string& other)
+{
+	this->_password = other;
+}
 void Channel::setTopic(const std::string& other)
 {
 	this->_topic = other;
@@ -100,7 +105,14 @@ void Channel::broadcast(Server *server, const std::string &msg, Client *sender, 
 		server->queueMessage(_clients[i], msg);
 	}
 }
-bool Channel::AdminTopicMode(){return(_onlyAdminTopic);}
+void Channel::putUpPasswordMode()
+{
+	this->_passwordMode = true;
+}
+void Channel::putDownPasswordMode()
+{
+	this->_passwordMode = false;
+}
 void Channel::putUpAdminMode()
 {
 	this->_onlyAdminTopic = true;
@@ -117,6 +129,8 @@ void Channel::putUpInviteMode()
 {
 	this->_inviteMode = true;
 }
+bool Channel::passwordMode(){return(_passwordMode);}
+bool Channel::AdminTopicMode(){return(_onlyAdminTopic);}
 bool Channel::inviteMode(){return(this->_inviteMode);}
 bool Channel::isValidChannelName(const std::string &name)
 {
