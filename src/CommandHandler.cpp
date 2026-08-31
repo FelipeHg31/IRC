@@ -3,6 +3,7 @@
 #include <Channel.hpp>
 #include <Server.hpp>
 #include <iostream>
+#include <sstream>
 
 CommandHandler::CommandHandler()
 {
@@ -35,6 +36,8 @@ void CommandHandler::populateMap()
 	_commands["TOPIC"] = &CommandHandler::TOPIC;
 	_commands["PRIVMSG"] = &CommandHandler::PRIVMSG;
 	_commands["WHO"] = &CommandHandler::WHO;
+	_commands["NAMES"] = &CommandHandler::NAMES;
+	_commands["LIST"] = &CommandHandler::LIST;
 }
 
 std::set<std::string> CommandHandler::populateRegCmds() const
@@ -496,3 +499,39 @@ void CommandHandler::WHO(Server *server, Client *client, ArgsList args)
 	server->sendNumericMsg(client, "315", chanName + " :End of WHO list");
 }
 
+void CommandHandler::NAMES(Server *server, Client *client, ArgsList args)
+{
+	if (args.empty())
+		return;
+
+	const std::string &chanName = args[0];
+	Channel *chan = server->getChannel(chanName);
+
+	if (!chan)
+	{
+		server->sendNumericMsg(client, "366", chanName + " :End of /NAMES list");
+		return;
+	}
+
+	server->sendNumericMsg(client, "353", "= " + chanName + " :" + chan->getMembers());
+	server->sendNumericMsg(client, "366", chanName + " :End of /NAMES list");
+}
+
+void CommandHandler::LIST(Server *server, Client *client, ArgsList args)
+{
+	(void)args;
+
+	const std::map<std::string, Channel *> &channels = server->getChannels();
+	std::map<std::string, Channel *>::const_iterator it;
+
+	for (it = channels.begin(); it != channels.end(); it++)
+	{
+		Channel *chan = it->second;
+		std::ostringstream oss;
+		oss << chan->getClients().size();
+
+		server->sendNumericMsg(client, "322", chan->getName() + " " + oss.str() + " :" + chan->getTopic());
+	}
+
+	server->sendNumericMsg(client, "323", ":End of /LIST");
+}

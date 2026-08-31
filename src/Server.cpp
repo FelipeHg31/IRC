@@ -68,6 +68,8 @@ void Server::init()
 	_fds.push_back(p);
 }
 
+const ChannelMap &Server::getChannels() const { return _channels; }
+
 void Server::start()
 {
 	init();

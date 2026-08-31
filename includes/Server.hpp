@@ -45,6 +45,7 @@ class Server
 		void removeClient(int fd, const std::string &reason = "Client disconnected.");
 		void tryRegistration(Client *client);
 		
+		const ChannelMap  &getChannels() const;
 		Channel	*getChannel(const std::string &name);
 		Channel	*addNewChannel(const std::string &name, Client *admin);
 		Client *getClientByNick(const std::string &nick);
