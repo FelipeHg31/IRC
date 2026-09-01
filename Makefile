@@ -2,7 +2,9 @@
 NAME = ft_irc
 CXX = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes -g3 -MMD -MP
-SRCS =	src/Server.cpp src/Client.cpp src/Channel.cpp src/Message.cpp src/CommandHandler.cpp main.cpp
+SRCS =	src/Server.cpp src/Server_network.cpp src/Server_messages.cpp src/Server_state.cpp \
+		src/Client.cpp src/Channel.cpp src/Message.cpp \
+		src/CommandHandler.cpp main.cpp
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
 

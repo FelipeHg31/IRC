@@ -1,6 +1,14 @@
-
 #pragma once
 
+#include <Client.hpp>
+#include <Channel.hpp>
+#include <iostream>
+#include <ctime>
+#include <sstream>
+#include <cstring>
+#include <unistd.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -17,21 +25,6 @@ typedef std::vector<struct pollfd> FdVector;
 
 class Server
 {
-	private:
-		int	_serverSocket;
-		int	_port;
-		FdVector	_fds; 
-		ClientMap	_clients;
-		ChannelMap	_channels;
-		std::string					_password;
-		std::string					_creationDate;
-		std::string					_name;
-		CommandHandler				_cmdHandler;
-		static std::string			resolveHost(int fd);
-		void init();
-		void acceptClient();
-		void handlePollIn(int fd);
-		void handlePollOut(int fd, std::vector<int> &toDelete);
 	public:
 		const std::string &getPass() const;
 		const std::string &getName() const;
@@ -40,6 +33,7 @@ class Server
 		~Server();
 
 		void start();
+
 		void sendNumericMsg(Client *client, const std::string &code, const std::string &msg);
 		void queueMessage(Client *client, const std::string &msg);
 		void removeClient(int fd, const std::string &reason = "Client disconnected.");
@@ -60,4 +54,26 @@ class Server
 				virtual const  char * what() const throw() {return(msg);};
 
 		};
+	private:
+		int			_port;
+		int			_serverSocket;
+		std::string	_name;
+		FdVector	_fds; 
+		std::string	_password;
+		std::string	_creationDate;
+		ClientMap	_clients;
+		ChannelMap	_channels;
+
+		CommandHandler	_cmdHandler;
+
+		void init();
+
+		void acceptClient();
+		void handlePollIn(int fd);
+		void handlePollOut(int fd, std::vector<int> &toDelete);
+		void disablePollOut(int fd);
+		void removeFromPoll(int fd);
+		void processClientBuffer(Client *client);
+		void handleEvent(size_t i, std::vector<int> &toDelete);
+		std::string resolveHost(int fd);
 };
