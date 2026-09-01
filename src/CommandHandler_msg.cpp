@@ -3,7 +3,7 @@
 #include <Channel.hpp>
 #include <Server.hpp>
 
-static void PrivmsgChannel(Server* server, Client *client, const std::vector<std::string> &args)
+static void privMsgChannel(Server* server, Client *client, const std::vector<std::string> &args)
 {
 	const std::string &chanName = args[0];
 
@@ -24,7 +24,7 @@ static void PrivmsgChannel(Server* server, Client *client, const std::vector<std
 	chan->broadcast(server, reply,client, false);
 }
 
-static void Privmsgclient(Server* server, Client *client, const std::vector<std::string> &args)
+static void privMsgClient(Server* server, Client *client, const std::vector<std::string> &args)
 {
 	const std::string &target = args[0];
 
@@ -56,7 +56,7 @@ void CommandHandler::PRIVMSG(Server *server, Client *client, ArgsList args)
 	const std::string &target = args[0];
 
 	if(target[0] == '#')
-		PrivmsgChannel(server, client, args);
+		privMsgChannel(server, client, args);
 	else
-		Privmsgclient(server, client, args);
+		privMsgClient(server, client, args);
 }
