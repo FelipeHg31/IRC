@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include "iostream"
 
-Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set"), _inviteMode(false), _passwordMode(false), _userLimit(0)
+Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set"), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0)
 {
 	if (!admin)
 		throw std::runtime_error("Something broke.");
@@ -21,7 +21,19 @@ const std::string &Channel::getName() const
 
 const std::string &Channel::getPassword() const { return _password; }
 
+void Channel::setPassword(const std::string &password) { _password = password; }
+
+void Channel::lockPassword() { _passwordMode = true; }
+
+void Channel::unlockPassword() { _passwordMode = false; }
+
 unsigned int	Channel::getUserLimit() const { return _userLimit; }
+
+bool Channel::isTopicLocked() const { return _topicLocked; }
+
+void Channel::lockTopic() { _topicLocked = true; }
+
+void Channel::unlockTopic() { _topicLocked = false; }
 
 void Channel::setUserLimit(int limit)
 {

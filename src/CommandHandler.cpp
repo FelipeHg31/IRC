@@ -111,6 +111,7 @@ void CommandHandler::TOPIC(Server *server, Client *client, ArgsList args)
 	chan->broadcast(server, server->formatMessage("TOPIC", *client, chanName, topic ),client, true);
 
 }
+
 static void PrivmsgChannel(Server* server, Client *client, const std::vector<std::string> &args)
 {
 
@@ -175,6 +176,42 @@ void CommandHandler::PRIVMSG(Server *server, Client *client, ArgsList args)
 
 
 }
+static void selectUpMode(size_t option,Channel *chan, ArgsList args, size_t *actualArg)
+{
+	switch (option)
+	{
+		case 0:
+			chan->putUpInviteMode();
+			break;
+		case 1:
+			chan->lockTopic();
+			break;
+		case 2:
+			chan->lockPassword();
+			chan->setPassword(args[*(actualArg++)]);
+			break;
+		default:
+			return;
+	}
+}
+static void selectDownMode(size_t option,Channel *chan)
+{
+	switch (option)
+	{
+		case 0:
+			chan->putUpInviteMode();
+			break;
+		case 1:
+			chan->unlockTopic();
+			break;
+		case 2:
+			chan->unlockPassword();
+			break;
+		default:
+			return;
+	}
+}
+
 void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 {
 	if (args.size() < 2)
@@ -215,54 +252,64 @@ void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 void CommandHandler::MODE(Server *server, Client *client, ArgsList args)
 {
 	
+	std::string chanName = args[0];
 
 	if (args.size() < 2)
 	{
 		server->sendNumericMsg(client, "461", "MODE:Not enough parameters");
 		return;
 	}
+
 	if (!client->isRegistered())
 	{
 		server->sendNumericMsg(client, "462", ":You may not reregister");
 		return;
 	}
-
-	std::string chanName = args[0];
-	Channel *chan = server->getChannel(chanName);
-
-	if (!chan)
+	if (!Channel::isValidChannelName(chanName))
 	{
 		server->sendNumericMsg(client, "403", chanName + " :No such channel");
 		return;
 	}
+	Channel *chan = server->getChannel(chanName);
 
 	if(!chan->isAdmin(*client))
 	{
 		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
 		return;
 	}
-	std::string option[2] = {"+i", "-i"};
-	size_t i = 0;
-	for (; i < 2; i++)
+	std::string option[5] = {"i", "t", "k", "o", "l"};
+	char 	ActivationState = '+';
+	size_t actualArg  = 2;
+	for( size_t i= 0 ; i <  args[1].size(); i++)
 	{
-			if(option[i] == args[1])
+		size_t j = 0;
+		for(; j < 5; j++)
+		{
+			if(args[1][i] == option[j][0])
 				break;
+		}
+		if(j == 5 && (args[1][i] == '+' || args[1][i] == '-'))
+		{
+			ActivationState = args[1][i];
+			continue;
+		}
+		else if(j == 5)
+		{
+			server->sendNumericMsg(client, "472", args[1][i] + " : is unkown mode char for me");
+			return;
+		}
+		else if(actualArg >= args.size() && j  >= 2 )
+		{
+			server->sendNumericMsg(client, "461","MODE : Not enought parametres");
+			return ;
+		}
+		if(ActivationState == '+')
+			selectUpMode(j, chan, args, &actualArg);
+		else
+			selectDownMode(j, chan);
 	}
-	switch (i)
-	{
-	case 0:
-		chan->putUpInviteMode();
-		break;
-	case 1:
-		chan->putDownInviteMode();
-		break;
-	default:
-		server->sendNumericMsg(client, "472", args[2] + " : is unkown mode char for me");
-		return;
-	}
-	
-
 }
+
 void CommandHandler::ECHO(Server *server, Client *client, ArgsList args)
 {
 	std::string reply;

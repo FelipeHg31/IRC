@@ -18,6 +18,7 @@ private:
 	std::set<Client*> _invited;
 	bool _inviteMode;
 	bool _passwordMode;
+	bool _topicLocked;
 	unsigned int	_userLimit;
 	Channel();
 	Channel(const Channel &rhs);
@@ -33,6 +34,12 @@ public:
 	unsigned int getUserLimit() const;
 	void setUserLimit(int limit);
 	bool hasPassword() const;
+	bool isTopicLocked() const;
+	void lockTopic();
+	void unlockTopic();
+	void lockPassword();
+	void unlockPassword();
+	void setPassword(const std::string &password);
 	const std::string &getTopic() const;
 	std::vector<Client *> &getClients();
 	std::string	getMembers() const;
