@@ -21,34 +21,15 @@ void CommandHandler::JOIN(Server *server, Client *client, ArgsList args)
 
 	Channel *chan = server->getChannel(chanName);
 
-	if (chan && chan->getClientByFd(client->getFd()))
-		return;
-
 	if (chan)
 	{
-		if (chan->getUserLimit() != 0 && chan->getClients().size() >= chan->getUserLimit())
-		{
-			server->sendNumericMsg(client, "471", chanName + " :Cannot join channel (+l)");
+		if (chan->getClientByFd(client->getFd()))
 			return;
-		}
-		if (chan->hasPassword())
-		{
-			std::string providedKey = args.size() > 1 ? args[1] : "";
-			if (providedKey != chan->getPassword())
-			{
-				server->sendNumericMsg(client, "475", chanName + " :Cannot join channel (+k)");
-				return;
-			}
-		}
-		if (chan->inviteMode())
-		{
-			if (!chan->IsInvited(client))
-			{
-				server->sendNumericMsg(client, "473", chanName + " :Can't join channel (+i)");
-				return;
-			}
-			chan->RemoveInvite(client);
-		}
+
+		std::string passGiven = (args.size() > 1) ? args[1] : "";
+
+		if (!checkJoinPermissions(server, client, chan, passGiven))
+			return;
 	}
 	else
 		chan = server->addNewChannel(chanName, client);
@@ -241,4 +222,32 @@ void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 	if(chan->IsInvited(invited))
 		return;
 	chan->Inviteclient(invited);
+}
+
+bool CommandHandler::checkJoinPermissions(Server *server,
+						Client *client, Channel *channel, const std::string &password)
+{
+	if (chan->getUserLimit() != 0 && chan->getClients().size() >= chan->getUserLimit())
+	{
+		server->sendNumericMsg(client, "471", chan->getName() + " :Cannot join channel (+l)");
+		return false;
+	}
+	if (chan->hasPassword())
+	{
+		if (providedKey != chan->getPassword())
+		{
+			server->sendNumericMsg(client, "475", chan->getName() + " :Cannot join channel (+k)");
+			return false;
+		}
+	}
+	if (chan->inviteMode())
+	{
+		if (!chan->IsInvited(client))
+		{
+			server->sendNumericMsg(client, "473", chan->getName() + " :Can't join channel (+i)");
+			return false;
+		}
+		chan->RemoveInvite(client);
+	}
+	return true;
 }

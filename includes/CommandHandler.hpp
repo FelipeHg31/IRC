@@ -27,8 +27,11 @@ class CommandHandler
 
 		void	populateMap();
 		void	populatePreRegCmds();
+		bool	checkJoinPermissions(Server *server,
+				Client *client, Channel *channel, const std::string &password);
 
-		static void announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick);
+		static void announceNickChange(Server *server,
+				Client *client, const std::string &oldNick, const std::string &newNick);
 		static bool	isValidNickChar(char c, bool isFirst);
 
 		static void CAP(Server *server, Client *client, ArgsList args);
