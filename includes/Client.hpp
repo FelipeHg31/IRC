@@ -21,35 +21,46 @@ class Client
 		ChannelSet	_channels;
 		bool _passGiven;
 		bool _registered;
+
+		Client();
+		Client(const Client &rhs);
+		Client &operator=(const Client &rhs);
 	public:
+		Client(int fd);
+		~Client();
+		
+		bool	operator==(const Client& rhs);
+		
 		const int &getFd() const;
 
 		const std::string &getNick() const;
 		const std::string &getUser() const;
 		const std::string &getRnam() const;
 		const std::string &getHost() const;
+
+		std::string	&getInBuf();
+		std::string	&getOutBuf();
 		
-		std::string getTarget() const;
-		std::string	getPrefix() const;
+		bool isPassGiven() const;
+		bool isRegistered() const;
 
 		void setNick(const std::string &nick);
 		void setUser(const std::string &user);
 		void setRnam(const std::string &name);
 		void setHost(const std::string &host);
-
-		bool isPassGiven() const;
-		bool isRegistered() const;
+		
 		void setPassGiven();
 		void setRegistered();
+		
 
-		std::set<Client *> getChannelPeers() const;
-		ChannelSet &getChannels();
+		
+		std::string getTarget() const;
+		std::string	getPrefix() const;
+		
 		void addChannel(Channel *chan);
-		std::string	&getInBuf();
-		std::string	&getOutBuf();
-		bool	operator==(const Client& rhs);
-		Client(int fd);
-		~Client();
+		
+		ChannelSet &getChannels();
+		std::set<Client *> getChannelPeers() const;
 };
 
 
