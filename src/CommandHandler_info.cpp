@@ -25,7 +25,7 @@ void CommandHandler::WHO(Server *server, Client *client, ArgsList args)
 	{
 		Client *member = members[i];
 		std::string flags = "H";
-		if (chan->isAdmin(*member))
+		if (chan->isAdmin(member))
 			flags += "@";
 
 		std::string line = chanName + " " + member->getUser() + " " + member->getHost() + " "

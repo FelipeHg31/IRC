@@ -60,6 +60,8 @@ std::string Channel::getMembers() const
 	{
 		if (it != _clients.begin())
 			names += " ";
+		if (isAdmin(*it))
+			names += "@";
 		names += (*it)->getNick();
 	}
 	return names;
@@ -164,9 +166,9 @@ bool Channel::IsInvited(Client *other)
 	return(true);
 }
 
-bool Channel::isAdmin(Client &client)
+bool Channel::isAdmin(Client *client) const
 {
-	if (_operators.find(&client) != _operators.end())
+	if (_operators.find(client) != _operators.end())
 		return true;
 	return false;
 }

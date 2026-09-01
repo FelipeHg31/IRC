@@ -53,7 +53,7 @@ public:
 	void putDownInviteMode();
 	void broadcast(Server *server, const std::string &msg, Client *sender, bool toAll);
 	static bool isValidChannelName(const std::string &name);
-	bool isAdmin( Client& other);
+	bool isAdmin(Client *other) const;
 	bool inviteMode();
 	bool IsInvited(Client *other);
 };

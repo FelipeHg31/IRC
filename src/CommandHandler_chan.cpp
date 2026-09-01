@@ -108,7 +108,7 @@ void CommandHandler::MODE(Server *server, Client *client, ArgsList args)
 	}
 	Channel *chan = server->getChannel(chanName);
 
-	if(!chan->isAdmin(*client))
+	if(!chan->isAdmin(client))
 	{
 		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
 		return;
@@ -169,7 +169,7 @@ void CommandHandler::TOPIC(Server *server, Client *client, ArgsList args)
 	}
 	if (!chan->getClientByFd(client->getFd()))
 		return;
-	if(!chan->isAdmin(*client))
+	if(!chan->isAdmin(client))
 	{
 		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
 		return;
@@ -209,7 +209,7 @@ void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 		server->sendNumericMsg(client, "403", chanName + " :No such channel");
 		return;
 	}
-	if(!chan->isAdmin(*client))
+	if(!chan->isAdmin(client))
 	{
 		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
 		return;
