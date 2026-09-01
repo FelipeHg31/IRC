@@ -10,28 +10,24 @@ void Server::start()
         if (ret < 0)
             continue;
 
-        std::vector<int> toDelete;
-
         for (size_t i = 0; i < _fds.size(); i++)
         {
             if (_fds[i].revents == 0)
                 continue;
-            handleEvent(i, toDelete);
+            handleEvent(i);
         }
-        
-        for (size_t i = 0; i < toDelete.size(); i++)
-            removeClient(toDelete[i]);
+		removePendingClients();
     }
 }
 
-void Server::handleEvent(size_t i, std::vector<int> &toDelete)
+void Server::handleEvent(size_t i)
 {
     int fd = _fds[i].fd;
     short revents = _fds[i].revents;
 
     if (revents & (POLLHUP | POLLERR | POLLNVAL))
     {
-        toDelete.push_back(fd);
+        _clients[fd]->setToDisconnect();
         return;
     }
     
@@ -46,7 +42,7 @@ void Server::handleEvent(size_t i, std::vector<int> &toDelete)
         handlePollIn(fd);
         
     if (revents & POLLOUT)
-        handlePollOut(fd, toDelete);
+        handlePollOut(fd);
 }
 
 void Server::acceptClient()
@@ -110,7 +106,7 @@ void Server::processClientBuffer(Client *client)
     }
 }
 
-void Server::handlePollOut(int fd, std::vector<int>	&toDelete)
+void Server::handlePollOut(int fd)
 {
     Client *client = _clients[fd];
     int bytesSent = send(fd, client->getOutBuf().c_str(),
@@ -118,7 +114,7 @@ void Server::handlePollOut(int fd, std::vector<int>	&toDelete)
 
     if (bytesSent < 0)
     {
-        toDelete.push_back(fd);
+		client->setToDisconnect();
         return;
     }
 
@@ -152,6 +148,21 @@ void Server::removeFromPoll(int fd)
             break;
         }
     }
+}
+
+void Server::removePendingClients()
+{
+	std::vector<int> toDelete;
+	ClientMap::iterator it;
+
+	for (it = _clients.begin(); it != _clients.end(); it++)
+	{
+		if (it->second->toDisconnect())
+			toDelete.push_back(it->second->getFd());
+	}
+
+	for (size_t i = 0; i < toDelete.size(); i++)
+		removeClient(toDelete[i], _clients[toDelete[i]]->getDiscReason());
 }
 
 void Server::removeClient(int fd, const std::string &reason)

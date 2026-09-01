@@ -202,7 +202,6 @@ void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 		return;
 	}
 
-
 	Channel *chan = server->getChannel(chanName);
 	if(!chan)
 	{

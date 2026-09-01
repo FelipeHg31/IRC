@@ -2,7 +2,7 @@
 #include <Client.hpp>
 #include <Channel.hpp>
 
-Client::Client(int fd) : _fd(fd), _passGiven(false), _registered(false) {}
+Client::Client(int fd) : _fd(fd), _passGiven(false), _registered(false), _pendingDisconnect(false) {}
 
 Client::~Client() {}
 
@@ -18,6 +18,8 @@ const std::string &Client::getRnam() const { return _realname; }
 
 const std::string &Client::getHost() const { return _hostname; }
 
+const std::string &Client::getDiscReason() const { return _disconnectReason; }
+
 std::string &Client::getInBuf() { return _inBuffer; }
 
 std::string &Client::getOutBuf() { return _outBuffer; }
@@ -25,6 +27,8 @@ std::string &Client::getOutBuf() { return _outBuffer; }
 bool Client::isPassGiven() const { return _passGiven; }
 
 bool Client::isRegistered() const { return _registered; }
+
+bool Client::toDisconnect() const { return _pendingDisconnect; }
 
 void Client::setNick(const std::string &nick) { _nickname = nick; }
 
@@ -34,9 +38,15 @@ void Client::setRnam(const std::string &name) { _realname = name; }
 
 void Client::setHost(const std::string &name) { _hostname = name; }
 
-void Client::setRegistered() { _registered = true; }
+void Client::setToDisconnect(const std::string &reason)
+{
+	_pendingDisconnect = true;
+	_disconnectReason = reason;
+}
 
 void Client::setPassGiven() { _passGiven = true; }
+
+void Client::setRegistered() { _registered = true; }
 
 std::string Client::getTarget() const
 {

@@ -78,10 +78,11 @@ class Server
 
 		void acceptClient();
 		void handlePollIn(int fd);
-		void handlePollOut(int fd, std::vector<int> &toDelete);
+		void handlePollOut(int fd);
 		void disablePollOut(int fd);
 		void removeFromPoll(int fd);
+		void removePendingClients();
 		void processClientBuffer(Client *client);
-		void handleEvent(size_t i, std::vector<int> &toDelete);
+		void handleEvent(size_t i);
 		std::string resolveHost(int fd);
 };

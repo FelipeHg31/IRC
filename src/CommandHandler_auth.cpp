@@ -114,9 +114,11 @@ void CommandHandler::USER(Server *server, Client *client, ArgsList args)
 
 void CommandHandler::QUIT(Server *server, Client *client, ArgsList args)
 {
+	(void)server;
+	
 	std::string reason = args.empty() ? "Client Quit" : args[0];
 
-	server->removeClient(client->getFd(), reason);
+	client->setToDisconnect(reason);
 }
 
 void CommandHandler::announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick)
