@@ -227,27 +227,27 @@ void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 bool CommandHandler::checkJoinPermissions(Server *server,
 						Client *client, Channel *channel, const std::string &password)
 {
-	if (chan->getUserLimit() != 0 && chan->getClients().size() >= chan->getUserLimit())
+	if (channel->getUserLimit() != 0 && channel->getClients().size() >= channel->getUserLimit())
 	{
-		server->sendNumericMsg(client, "471", chan->getName() + " :Cannot join channel (+l)");
+		server->sendNumericMsg(client, "471", channel->getName() + " :Cannot join channel (+l)");
 		return false;
 	}
-	if (chan->hasPassword())
+	if (channel->hasPassword())
 	{
-		if (providedKey != chan->getPassword())
+		if (password != channel->getPassword())
 		{
-			server->sendNumericMsg(client, "475", chan->getName() + " :Cannot join channel (+k)");
+			server->sendNumericMsg(client, "475", channel->getName() + " :Cannot join channel (+k)");
 			return false;
 		}
 	}
-	if (chan->inviteMode())
+	if (channel->inviteMode())
 	{
-		if (!chan->IsInvited(client))
+		if (!channel->IsInvited(client))
 		{
-			server->sendNumericMsg(client, "473", chan->getName() + " :Can't join channel (+i)");
+			server->sendNumericMsg(client, "473", channel->getName() + " :Can't join channel (+i)");
 			return false;
 		}
-		chan->RemoveInvite(client);
+		channel->RemoveInvite(client);
 	}
 	return true;
 }

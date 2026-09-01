@@ -6,6 +6,7 @@
 #include <vector>
 
 class Client;
+class Channel;
 class Server;
 
 typedef	const std::vector<std::string> &ArgsList;
@@ -27,7 +28,7 @@ class CommandHandler
 
 		void	populateMap();
 		void	populatePreRegCmds();
-		bool	checkJoinPermissions(Server *server,
+		static bool	checkJoinPermissions(Server *server,
 				Client *client, Channel *channel, const std::string &password);
 
 		static void announceNickChange(Server *server,
