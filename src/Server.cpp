@@ -1,6 +1,6 @@
 #include <Server.hpp>
 
-Server::Server(int port, const std::string &password, const std::string &name): _port(port), _password(password), _name(name)
+Server::Server(int port, const std::string &password, const std::string &name): _port(port), _name(name), _password(password)
 {
 	if(port < 1024 || port > 49151)
 		throw(NoValidServer("Bad port"));

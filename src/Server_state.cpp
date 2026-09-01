@@ -1,6 +1,6 @@
 #include <Server.hpp>
 
-void	Server::tryRegistration(Client	*client)
+void Server::tryRegistration(Client	*client)
 {
 	if (client->isRegistered())
 		return;
@@ -10,8 +10,10 @@ void	Server::tryRegistration(Client	*client)
 		return;
 	client->setRegistered();
 
-	sendNumericMsg(client, "001", ":Bienvenido al Internet Relay Network " + client->getPrefix());
-	sendNumericMsg(client, "002", ":Tu host es " + _name + ", ejectuando version 1.0");
+	sendNumericMsg(client, "001", ":Bienvenido al Internet Relay Network "
+		+ client->getPrefix());
+	sendNumericMsg(client, "002", ":Tu host es " + _name
+		+ ", ejectuando version 1.0");
 	sendNumericMsg(client, "003", ":Este servidor se creó " + _creationDate);
 	sendNumericMsg(client, "004", "CONECTADO! YABBADABBADOOO!");
 }

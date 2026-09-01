@@ -2,6 +2,7 @@
 
 #include <Client.hpp>
 #include <Channel.hpp>
+#include <CommandHandler.hpp>
 #include <iostream>
 #include <ctime>
 #include <sstream>
@@ -12,7 +13,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <CommandHandler.hpp>
 #include <poll.h>
 
 class Message;
@@ -26,25 +26,33 @@ typedef std::vector<struct pollfd> FdVector;
 class Server
 {
 	public:
+		Server(int port, const std::string &password, const std::string &name);
+		~Server();
 		const std::string &getPass() const;
 		const std::string &getName() const;
 		const std::string &getCreationDate() const;
-		Server(int port, const std::string &password, const std::string &name);
-		~Server();
 
 		void start();
-
-		void sendNumericMsg(Client *client, const std::string &code, const std::string &msg);
-		void queueMessage(Client *client, const std::string &msg);
-		void removeClient(int fd, const std::string &reason = "Client disconnected.");
-		void tryRegistration(Client *client);
 		
+		void tryRegistration(Client *client);		
 		const ChannelMap  &getChannels() const;
 		Channel	*getChannel(const std::string &name);
 		Channel	*addNewChannel(const std::string &name, Client *admin);
 		Client *getClientByNick(const std::string &nick);
-		std::string formatNumeric(const std::string &code, const std::string &target, const std::string &msg) const;
-		std::string formatMessage(const std::string &source,const Client &speaker , const std::string& chan, const std::string& msg ) const;
+
+		void removeClient(int fd,
+				const std::string &reason = "Client disconnected.");
+				
+		void queueMessage(Client *client, const std::string &msg);
+		void sendNumericMsg(Client *client,
+				const std::string &code, const std::string &msg);
+
+		std::string formatNumeric(const std::string &code,
+				const std::string &target, const std::string &msg) const;
+		std::string formatMessage(const std::string &source,
+				const Client &speaker , const std::string& chan, 
+				const std::string& msg ) const;
+
 		class NoValidServer : public std::exception 
 		{
 			private:
