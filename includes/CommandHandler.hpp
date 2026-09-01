@@ -21,25 +21,31 @@ class CommandHandler
 		void	execute(std::string cmd, Server *server, Client *client, ArgsList args);
 	private:
 		typedef void (*Handler)(Server*, Client*, ArgsList);
+
 		std::map<std::string, Handler> _commands;
+		std::set<std::string> _preRegCommands;
+
 		void	populateMap();
-		std::set<std::string> populateRegCmds() const;
+		void	populatePreRegCmds();
+
 		static void announceNickChange(Server *server, Client *client, const std::string &oldNick, const std::string &newNick);
 		static bool	isValidNickChar(char c, bool isFirst);
 
-		static void PING(Server *server, Client *client, ArgsList args);
 		static void CAP(Server *server, Client *client, ArgsList args);
 		static void PASS(Server *server, Client *client, ArgsList args);
-		static void ECHO(Server *server, Client *client, ArgsList args);
 		static void NICK(Server *server, Client *client, ArgsList args);
 		static void USER(Server *server, Client *client, ArgsList args);
 		static void QUIT(Server *server, Client *client, ArgsList args);
+		
 		static void JOIN(Server *server, Client *client, ArgsList args);
 		static void MODE(Server *server, Client *client, ArgsList args);
 		static void INVITE(Server *server, Client *client, ArgsList args);
 		static void TOPIC(Server *server, Client *client, ArgsList args);
+		
 		static void PRIVMSG(Server *server, Client *client, ArgsList args);
+		
 		static void WHO(Server *server, Client *client, ArgsList args);
 		static void NAMES(Server *server, Client *client, ArgsList args);
 		static void LIST(Server *server, Client *client, ArgsList args);
+		static void PING(Server *server, Client *client, ArgsList args);
 };
