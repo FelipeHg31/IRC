@@ -2,6 +2,7 @@
 #include "Server.hpp"
 #include <iostream>
 #include <cstdlib>
+#include <csignal>
 
 int main(int argc, char **argv)
 {
@@ -15,6 +16,7 @@ int main(int argc, char **argv)
 	std::string password = argv[2];
 	try
 	{
+		signal(SIGPIPE, SIG_IGN);
 		Server server(port, password, "ircserv");
 		server.start();
 	}

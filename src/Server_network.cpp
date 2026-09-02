@@ -1,10 +1,16 @@
 #include <Server.hpp>
 #include <Message.hpp>
+#include <csignal>
+
+static volatile sig_atomic_t stop_serv = 0;
+
+static void handleSigInt(int) { stop_serv = 1; }
 
 void Server::start()
 {
+	signal(SIGINT, handleSigInt);
     init();
-    while (true)
+    while (!stop_serv)
     {
         int ret = poll(&_fds[0], _fds.size(), -1);
         if (ret < 0)
@@ -199,13 +205,13 @@ void Server::removeClient(int fd, const std::string &reason)
 	for (size_t i = 0; i < emptied.size(); i++)
 		removeChannel(emptied[i]);
 
+	std::cout << "Client disconnected: fd=" << fd << " host="
+				<< client->getHost() << " reason=" << reason << std::endl;
+
 	close(fd);
 	delete client;
 	_clients.erase(it);
 	removeFromPoll(fd);
-	
-	std::cout << "Client disconnected: fd=" << fd << " host="
-				<< client->getHost() << " reason=" << reason << std::endl;
 }
 
 std::string Server::resolveHost(int fd)
