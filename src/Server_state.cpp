@@ -38,6 +38,15 @@ Channel *Server::addNewChannel(const std::string &name, Client *admin)
 	return out;
 }
 
+void Server::removeChannel(const std::string &name)
+{
+	ChannelMap::iterator it = _channels.find(name);
+	if (it == _channels.end())
+		return;
+	delete it->second;
+	_channels.erase(it);
+}
+
 Client *Server::getClientByNick(const std::string &nick)
 {
 	ClientMap::iterator it;

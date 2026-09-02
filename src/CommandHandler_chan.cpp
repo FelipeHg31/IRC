@@ -250,3 +250,38 @@ bool CommandHandler::checkJoinPermissions(Server *server,
 	}
 	return true;
 }
+
+void CommandHandler::PART(Server *server, Client *client, ArgsList args)
+{
+	if (args.empty())
+	{
+		server->sendNumericMsg(client, "461", "PART :Not enough parameters");
+		return;
+	}
+
+	const std::string &chanName = args[0];
+	Channel *chan = server->getChannel(chanName);
+
+	if (!chan)
+	{
+		server->sendNumericMsg(client, "403", chanName + " :No such channel");
+		return;
+	}
+	if (!chan->getClientByFd(client->getFd()))
+	{
+		server->sendNumericMsg(client, "442", chanName + " :You're not on that channel");
+		return;
+	}
+
+	std::string reason = args.size() > 1 ? args[1] : client->getNick();
+	std::string partMsg = ":" + client->getPrefix()
+			+ " PART " + chanName + " :" + reason + "\r\n";
+
+	chan->broadcast(server, partMsg, client, true);
+
+	chan->removeClient(client);
+	client->getChannels().erase(chan);
+
+	if (chan->getClients().empty())
+		server->removeChannel(chanName);
+}

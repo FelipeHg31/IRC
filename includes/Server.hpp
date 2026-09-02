@@ -38,6 +38,7 @@ class Server
 		const ChannelMap  &getChannels() const;
 		Channel	*getChannel(const std::string &name);
 		Channel	*addNewChannel(const std::string &name, Client *admin);
+		void	removeChannel(const std::string &name);
 		Client *getClientByNick(const std::string &nick);
 
 		void removeClient(int fd,
