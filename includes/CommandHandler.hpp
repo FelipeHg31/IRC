@@ -56,6 +56,7 @@ class CommandHandler
 		static void KICK(Server *server, Client *client, ArgsList args);
 		
 		static void PRIVMSG(Server *server, Client *client, ArgsList args);
+		static void NOTICE(Server *server, Client *client, ArgsList args);
 		
 		static void WHO(Server *server, Client *client, ArgsList args);
 		static void NAMES(Server *server, Client *client, ArgsList args);

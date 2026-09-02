@@ -3,9 +3,10 @@
 #include <Channel.hpp>
 #include <Server.hpp>
 
-static void privMsgChannel(Server* server, Client *client, const std::vector<std::string> &args)
+static void sendToChannel(Server* server, Client *client, ArgsList args, bool notice)
 {
 	const std::string &chanName = args[0];
+	const std::string cmdName = notice ? "NOTICE" : "PRIVMSG";
 
 	Channel *chan = server->getChannel(chanName);
 	if(!chan)
@@ -20,13 +21,14 @@ static void privMsgChannel(Server* server, Client *client, const std::vector<std
 		msg += args[i];
 	}
 
-	const std::string reply(server->formatMessage("PRIVMSG", *client, chanName, msg ));
+	const std::string reply(server->formatMessage(cmdName, *client, chanName, msg ));
 	chan->broadcast(server, reply,client, false);
 }
 
-static void privMsgClient(Server* server, Client *client, const std::vector<std::string> &args)
+static void sendToClient(Server* server, Client *client, ArgsList args, bool notice)
 {
 	const std::string &target = args[0];
+	const std::string cmdName = notice ? "NOTICE" : "PRIVMSG";
 
 	Client *clientTarget = server->getClientByNick(target);
 	if(!clientTarget)
@@ -41,22 +43,33 @@ static void privMsgClient(Server* server, Client *client, const std::vector<std:
 		msg += args[i];
 	}
 
-	const std::string reply(server->formatMessage("PRIVMSG", *client, target, msg));
+	const std::string reply(server->formatMessage(cmdName, *client, target, msg));
 	server->queueMessage(clientTarget, reply);
 }
 
-void CommandHandler::PRIVMSG(Server *server, Client *client, ArgsList args)
+static void sendMessage(Server *server, Client *client, ArgsList args, bool notice)
 {
-	if(args.size() < 2)
+	if (args.size() < 2)
 	{
-		server->sendNumericMsg(client, "461", "PRIVMSG:Not enough parameters");
+		if (!notice)
+			server->sendNumericMsg(client, "461", "PRIVMSG :Not enough parameters");
 		return;
 	}
 
 	const std::string &target = args[0];
 
-	if(target[0] == '#')
-		privMsgChannel(server, client, args);
+	if (target[0] == '#')
+		sendToChannel(server, client, args, notice);
 	else
-		privMsgClient(server, client, args);
+		sendToClient(server, client, args, notice);
+}
+
+void CommandHandler::PRIVMSG(Server *server, Client *client, ArgsList args)
+{
+	sendMessage(server, client, args, false);
+}
+
+void CommandHandler::NOTICE(Server *server, Client *client, ArgsList args)
+{
+	sendMessage(server, client, args, true);
 }
