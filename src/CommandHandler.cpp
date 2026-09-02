@@ -32,6 +32,7 @@ void CommandHandler::populateMap()
 	_commands["TOPIC"] = &CommandHandler::TOPIC;
 	_commands["INVITE"] = &CommandHandler::INVITE;
 	_commands["PART"] = &CommandHandler::PART;
+	_commands["KICK"] = &CommandHandler::KICK;
 	_commands["PRIVMSG"] = &CommandHandler::PRIVMSG;
 	_commands["WHO"] = &CommandHandler::WHO;
 	_commands["NAMES"] = &CommandHandler::NAMES;

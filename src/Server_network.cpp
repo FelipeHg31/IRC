@@ -187,16 +187,23 @@ void Server::removeClient(int fd, const std::string &reason)
 
 	ChannelSet &channels = client->getChannels();
 	ChannelSet::iterator chanIt;
+	std::vector<std::string> emptied;
 
 	for (chanIt = channels.begin(); chanIt != channels.end(); chanIt++)
+	{
 		(*chanIt)->removeClient(client);
+		if ((*chanIt)->getClients().empty())
+			emptied.push_back((*chanIt)->getName());
+	}
+
+	for (size_t i = 0; i < emptied.size(); i++)
+		removeChannel(emptied[i]);
 
 	close(fd);
 	delete client;
 	_clients.erase(it);
 	removeFromPoll(fd);
 	
-
 	std::cout << "Client disconnected: fd=" << fd << " host="
 				<< client->getHost() << " reason=" << reason << std::endl;
 }

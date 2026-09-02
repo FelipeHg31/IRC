@@ -46,6 +46,7 @@ class CommandHandler
 		static void TOPIC(Server *server, Client *client, ArgsList args);
 		static void INVITE(Server *server, Client *client, ArgsList args);
 		static void PART(Server *server, Client *client, ArgsList args);
+		static void KICK(Server *server, Client *client, ArgsList args);
 		
 		static void PRIVMSG(Server *server, Client *client, ArgsList args);
 		

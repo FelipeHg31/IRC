@@ -285,3 +285,47 @@ void CommandHandler::PART(Server *server, Client *client, ArgsList args)
 	if (chan->getClients().empty())
 		server->removeChannel(chanName);
 }
+
+void CommandHandler::KICK(Server *server, Client *client, ArgsList args)
+{
+	if (args.size() < 2)
+	{
+		server->sendNumericMsg(client, "461", "KICK :Not enough parameters");
+		return;
+	}
+
+	const std::string &chanName = args[0];
+	const std::string &targetNick = args[1];
+
+	Channel *chan = server->getChannel(chanName);
+	if (!chan)
+	{
+		server->sendNumericMsg(client, "403", chanName + " :No such channel");
+		return;
+	}
+	if (!chan->isAdmin(client))
+	{
+		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
+		return;
+	}
+
+	Client *target = server->getClientByNick(targetNick);
+	if (!target || !chan->getClientByFd(target->getFd()))
+	{
+		server->sendNumericMsg(client, "441",
+			targetNick + " " + chanName + " :They aren't on that channel");
+		return;
+	}
+
+	std::string reason = args.size() > 2 ? args[2] : client->getNick();
+	std::string kickMsg = ":" + client->getPrefix()
+		+ " KICK " + chanName + " " + targetNick + " :" + reason + "\r\n";
+
+	chan->broadcast(server, kickMsg, client, true);
+
+	chan->removeClient(target);
+	target->getChannels().erase(chan);
+
+	if (chan->getClients().empty())
+		server->removeChannel(chanName);
+}
