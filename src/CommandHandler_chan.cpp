@@ -378,7 +378,7 @@ void CommandHandler::KICK(Server *server, Client *client, ArgsList args)
 		return;
 	}
 
-	std::string reason = args.size() > 2 ? args[2] : client->getNick();
+	std::string reason = args.size() > 2 ? args[2] : "Kicked";
 	std::string kickMsg = ":" + client->getPrefix()
 		+ " KICK " + chanName + " " + targetNick + " :" + reason + "\r\n";
 

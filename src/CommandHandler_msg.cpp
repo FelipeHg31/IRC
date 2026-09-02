@@ -33,7 +33,7 @@ static void sendToClient(Server* server, Client *client, ArgsList args, bool not
 	Client *clientTarget = server->getClientByNick(target);
 	if(!clientTarget)
 	{
-		server->sendNumericMsg(client, "401", " :No such nick");
+		server->sendNumericMsg(client, "401", target + " :No such nick");
 		return ;
 	}
 	std::string msg(args[1]);
