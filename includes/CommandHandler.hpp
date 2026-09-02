@@ -35,6 +35,13 @@ class CommandHandler
 				Client *client, const std::string &oldNick, const std::string &newNick);
 		static bool	isValidNickChar(char c, bool isFirst);
 
+		static bool validateInviteChannel(Server *server,
+				Client *client, Channel *chan, const std::string &chanName);
+		static Client *validateInviteTarget(Server *server,
+				Client *client, Channel *chan, const std::string &targetNick);
+		static void notifyInvite(Server *server,
+				Client *client, Client *invited, const std::string &chanName);
+
 		static void CAP(Server *server, Client *client, ArgsList args);
 		static void PASS(Server *server, Client *client, ArgsList args);
 		static void NICK(Server *server, Client *client, ArgsList args);

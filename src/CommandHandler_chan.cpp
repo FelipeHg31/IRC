@@ -207,6 +207,55 @@ void CommandHandler::TOPIC(Server *server, Client *client, ArgsList args)
 		setChanTopic(server, client, chan, chanName, args);
 }
 
+bool CommandHandler::validateInviteChannel(Server *server, Client *client, Channel *chan, const std::string &chanName)
+{
+	if (!Channel::isValidChannelName(chanName))
+	{
+		server->sendNumericMsg(client, "403", chanName + " :No such channel");
+		return false;
+	}
+	if (!chan)
+	{
+		server->sendNumericMsg(client, "403", chanName + " :No such channel");
+		return false;
+	}
+	if (!chan->getClientByFd(client->getFd()))
+	{
+		server->sendNumericMsg(client, "442", chanName + " :You're not on that channel");
+		return false;
+	}
+	if (!chan->isAdmin(client))
+	{
+		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
+		return false;
+	}
+	return true;
+}
+
+Client *CommandHandler::validateInviteTarget(Server *server, Client *client, Channel *chan, const std::string &targetNick)
+{
+	Client *invited = server->getClientByNick(targetNick);
+	if (!invited)
+	{
+		server->sendNumericMsg(client, "401", targetNick + " :No such nick");
+		return NULL;
+	}
+	if (chan->getClientByFd(invited->getFd()))
+	{
+		server->sendNumericMsg(client, "443", targetNick + " " + chan->getName() + " :is already on channel");
+		return NULL;
+	}
+	return invited;
+}
+
+void CommandHandler::notifyInvite(Server *server, Client *client, Client *invited, const std::string &chanName)
+{
+	server->sendNumericMsg(client, "341", invited->getNick() + " " + chanName);
+
+	std::string notice = ":" + client->getPrefix() + " INVITE " + invited->getNick() + " :" + chanName + "\r\n";
+	server->queueMessage(invited, notice);
+}
+
 void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 {
 	if (args.size() < 2)
@@ -218,49 +267,21 @@ void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 	const std::string &chanName = args[0];
 	const std::string &targetNick = args[1];
 
-	if (!Channel::isValidChannelName(chanName))
-	{
-		server->sendNumericMsg(client, "403", chanName + " :No such channel");
-		return;
-	}
-
 	Channel *chan = server->getChannel(chanName);
-	if(!chan)
-	{
-		server->sendNumericMsg(client, "403", chanName + " :No such channel");
-		return;
-	}
-	if (!chan->getClientByFd(client->getFd()))
-	{
-		server->sendNumericMsg(client, "442", chanName + " :You're not on that channel");
-		return;
-	}
-	if (!chan->isAdmin(client))
-	{
-		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
-		return;
-	}
 
-	Client *invited = server->getClientByNick(args[1]);
+	if (!validateInviteChannel(server, client, chan, chanName))
+		return;
+
+	Client *invited = validateInviteTarget(server, client, chan, targetNick);
+
 	if(!invited)
-	{
-		server->sendNumericMsg(client, "401", " :No such nick");
 		return;
-	}
-	if (chan->getClientByFd(invited->getFd()))
-	{
-		server->sendNumericMsg(client, "443", targetNick + " " + chanName + " :is already on channel");
-		return;
-	}
+
 	if (chan->IsInvited(invited))
 		return;
 
 	chan->Inviteclient(invited);
-
-	server->sendNumericMsg(client, "341", targetNick + " " + chanName);
-
-	std::string notice = ":" + client->getPrefix() + " INVITE " + targetNick + " :" + chanName + "\r\n";
-	server->queueMessage(invited, notice);
+	notifyInvite(server, client, invited, chanName);
 }
 
 bool CommandHandler::checkJoinPermissions(Server *server,
@@ -286,8 +307,8 @@ bool CommandHandler::checkJoinPermissions(Server *server,
 			server->sendNumericMsg(client, "473", channel->getName() + " :Can't join channel (+i)");
 			return false;
 		}
-		channel->RemoveInvite(client);
 	}
+	channel->RemoveInvite(client);
 	return true;
 }
 
