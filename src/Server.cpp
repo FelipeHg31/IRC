@@ -13,6 +13,11 @@ Server::Server(int port, const std::string &password, const std::string &name): 
 }
 Server::~Server()
 {
+	ChannelMap::iterator chanIt;
+	for (chanIt = _channels.begin(); chanIt != _channels.end(); chanIt++)
+		delete chanIt->second;
+	_channels.clear();
+
 	ClientMap::iterator clientIt;
 	for (clientIt = _clients.begin(); clientIt != _clients.end(); clientIt++)
 	{
@@ -20,11 +25,6 @@ Server::~Server()
 		delete clientIt->second;
 	}
 	_clients.clear();
-
-	ChannelMap::iterator chanIt;
-	for (chanIt = _channels.begin(); chanIt != _channels.end(); chanIt++)
-		delete chanIt->second;
-	_channels.clear();
 
 	if (_serverSocket >= 0)
 		close(_serverSocket);

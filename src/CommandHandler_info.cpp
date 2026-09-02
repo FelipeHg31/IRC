@@ -76,9 +76,8 @@ void CommandHandler::LIST(Server *server, Client *client, ArgsList args)
 
 void CommandHandler::PING(Server *server, Client *client, ArgsList args)
 {
-	if (args.empty())
-		return;
-	if (args[0] != server->getName())
-		return;
-	server->queueMessage(client, "PONG " + server->getName());
+	std::string token = args.empty() ? server->getName() : args[0];
+
+	server->queueMessage(client, ":" + server->getName()
+		+ " PONG " + server->getName() + " :" + token + "\r\n");
 }

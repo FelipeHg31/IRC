@@ -214,6 +214,10 @@ void Server::removeClient(int fd, const std::string &reason)
 	for (size_t i = 0; i < emptied.size(); i++)
 		removeChannel(emptied[i]);
 
+	ChannelMap::iterator allChanIt;
+	for (allChanIt = _channels.begin(); allChanIt != _channels.end(); allChanIt++)
+		allChanIt->second->RemoveInvite(client);
+
 	std::cout << "Client disconnected: fd=" << fd << " host="
 				<< client->getHost() << " reason=" << reason << std::endl;
 
