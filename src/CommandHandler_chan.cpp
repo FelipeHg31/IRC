@@ -146,11 +146,39 @@ void CommandHandler::MODE(Server *server, Client *client, ArgsList args)
 	}
 }
 
+static void getChanTopic(Server *server,
+		Client *client, Channel *chan, const std::string &chanName)
+{
+	if (chan->getTopic().empty())
+		server->sendNumericMsg(client, "331", chanName + " :No topic is set");
+	else
+		server->sendNumericMsg(client, "332", chanName + " :" + chan->getTopic());
+}
+
+static void setChanTopic(Server *server,
+		Client *client, Channel *chan, const std::string &chanName, ArgsList args)
+{
+	if (chan->isTopicLocked() && !chan->isAdmin(client))
+	{
+		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
+		return;
+	}
+
+	std::string topic(args[1]);
+	for (size_t i = 2; i < args.size(); i++)
+		topic += " " + args[i];
+
+	chan->setTopic(topic);
+
+	std::string notice = server->formatMessage("TOPIC", *client, chanName, topic);
+	chan->broadcast(server, notice, client, true);
+}
+
 void CommandHandler::TOPIC(Server *server, Client *client, ArgsList args)
 {
-	if(args.size() < 2)
+	if (args.empty())
 	{
-		server->sendNumericMsg(client, "461", "TOPIC:Not enough parameters");
+		server->sendNumericMsg(client, "461", "TOPIC :Not enough parameters");
 		return;
 	}
 
@@ -168,22 +196,15 @@ void CommandHandler::TOPIC(Server *server, Client *client, ArgsList args)
 		return;
 	}
 	if (!chan->getClientByFd(client->getFd()))
-		return;
-	if(!chan->isAdmin(client))
 	{
-		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
+		server->sendNumericMsg(client, "442", chanName + " :You're not on that channel");
 		return;
 	}
-	std::string topic(args[1]);
-	
-	for(size_t i = 2; i < args.size(); i++)
-	{
-		topic += " ";
-		topic += args[i];
-	}
-	chan->setTopic(topic);
-	std::cout << server->formatMessage("TOPIC", *client, chanName, topic ) << std::endl;
-	chan->broadcast(server, server->formatMessage("TOPIC", *client, chanName, topic ),client, true);
+
+	if (args.size() < 2)
+		getChanTopic(server, client, chan, chanName);
+	else
+		setChanTopic(server, client, chan, chanName, args);
 }
 
 void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
