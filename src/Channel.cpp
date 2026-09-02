@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include "iostream"
 
-Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic("No topic is set"), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0)
+Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic(""), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0)
 {
 	if (!admin)
 		throw std::runtime_error("Something broke.");

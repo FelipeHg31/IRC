@@ -211,11 +211,12 @@ void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 {
 	if (args.size() < 2)
 	{
-		server->sendNumericMsg(client, "461", "INVITE:Not enough parameters");
+		server->sendNumericMsg(client, "461", "INVITE :Not enough parameters");
 		return;
 	}
 
 	const std::string &chanName = args[0];
+	const std::string &targetNick = args[1];
 
 	if (!Channel::isValidChannelName(chanName))
 	{
@@ -229,19 +230,37 @@ void CommandHandler::INVITE(Server *server, Client *client, ArgsList args)
 		server->sendNumericMsg(client, "403", chanName + " :No such channel");
 		return;
 	}
-	if(!chan->isAdmin(client))
+	if (!chan->getClientByFd(client->getFd()))
+	{
+		server->sendNumericMsg(client, "442", chanName + " :You're not on that channel");
+		return;
+	}
+	if (!chan->isAdmin(client))
 	{
 		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
 		return;
 	}
+
 	Client *invited = server->getClientByNick(args[1]);
 	if(!invited)
 	{
 		server->sendNumericMsg(client, "401", " :No such nick");
-	}
-	if(chan->IsInvited(invited))
 		return;
+	}
+	if (chan->getClientByFd(invited->getFd()))
+	{
+		server->sendNumericMsg(client, "443", targetNick + " " + chanName + " :is already on channel");
+		return;
+	}
+	if (chan->IsInvited(invited))
+		return;
+
 	chan->Inviteclient(invited);
+
+	server->sendNumericMsg(client, "341", targetNick + " " + chanName);
+
+	std::string notice = ":" + client->getPrefix() + " INVITE " + targetNick + " :" + chanName + "\r\n";
+	server->queueMessage(invited, notice);
 }
 
 bool CommandHandler::checkJoinPermissions(Server *server,
