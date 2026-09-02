@@ -93,6 +93,15 @@ void Server::handlePollIn(int fd)
 	buffer[bytes] = '\0';
 	Client *client = _clients[fd];
 	client->getInBuf() += buffer;
+
+	if (client->getInBuf().size() > 512
+		&& client->getInBuf().find("\n") == std::string::npos)
+	{
+		client->getInBuf().clear();
+		sendNumericMsg(client, "417", ":Input line was too long");
+		return;
+	}
+
 	processClientBuffer(client);
 }
 
