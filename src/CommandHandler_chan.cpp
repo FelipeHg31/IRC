@@ -72,7 +72,7 @@ static void selectDownMode(size_t option,Channel *chan)
 	switch (option)
 	{
 		case 0:
-			chan->putUpInviteMode();
+			chan->putDownInviteMode();
 			break;
 		case 1:
 			chan->unlockTopic();
