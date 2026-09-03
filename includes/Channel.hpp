@@ -33,6 +33,7 @@ public:
 	const std::string &getPassword() const;
 	unsigned int getUserLimit() const;
 	void setUserLimit(int limit);
+	void unsetUserLimit();
 	bool hasPassword() const;
 	bool isTopicLocked() const;
 	void lockTopic();

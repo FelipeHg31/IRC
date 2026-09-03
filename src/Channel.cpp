@@ -3,7 +3,7 @@
 #include <Server.hpp>
 #include <unistd.h>
 #include <sys/socket.h>
-#include "iostream"
+#include <iostream>
 
 Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic(""), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0)
 {
@@ -40,6 +40,8 @@ void Channel::setUserLimit(int limit)
 	if (limit > 0 && limit < 100)
 		_userLimit = limit;
 }
+
+void Channel::unsetUserLimit() { _userLimit = 0; }
 
 bool Channel::hasPassword() const { return _passwordMode; }
 

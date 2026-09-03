@@ -2,6 +2,8 @@
 #include <Client.hpp>
 #include <Channel.hpp>
 #include <Server.hpp>
+#include <cstdlib>
+
 
 void CommandHandler::JOIN(Server *server, Client *client, ArgsList args)
 {
@@ -49,100 +51,162 @@ void CommandHandler::JOIN(Server *server, Client *client, ArgsList args)
 	server->sendNumericMsg(client, "366", chanName + " :End of /NAMES list");
 }
 
-static void selectUpMode(size_t option,Channel *chan, ArgsList args, size_t *actualArg)
+void CommandHandler::setInviteMode(Channel *chan, ModeContext &ctx)
 {
-	switch (option)
-	{
-		case 0:
-			chan->putUpInviteMode();
-			break;
-		case 1:
-			chan->lockTopic();
-			break;
-		case 2:
-			chan->lockPassword();
-			chan->setPassword(args[*(actualArg++)]);
-			break;
-		default:
-			return;
-	}
+	if (ctx.plus)
+		chan->putUpInviteMode();
+	else
+		chan->putDownInviteMode();
+	ctx.applied += (ctx.plus ? "+i" : "-i");
 }
-static void selectDownMode(size_t option,Channel *chan)
+
+void CommandHandler::setTopicMode(Channel *chan, ModeContext &ctx)
 {
-	switch (option)
+	if (ctx.plus)
+		chan->lockTopic();
+	else
+		chan->unlockTopic();
+	ctx.applied += (ctx.plus ? "+t" : "-t");
+}
+
+bool CommandHandler::setPassMode(Server *server, Client *client, Channel *chan, ModeContext &ctx)
+{
+	if (!ctx.plus)
 	{
-		case 0:
-			chan->putDownInviteMode();
-			break;
-		case 1:
-			chan->unlockTopic();
-			break;
-		case 2:
-			chan->unlockPassword();
-			break;
+		chan->unlockPassword();
+		ctx.applied += "-k";
+		return true;
+	}
+	if (ctx.paramIndex >= ctx.args.size())
+	{
+		server->sendNumericMsg(client, "461", "MODE :Not enough parameters");
+		return true;
+	}
+	chan->setPassword(ctx.args[ctx.paramIndex]);
+	chan->lockPassword();
+	ctx.applied += "+k";
+	ctx.appliedArgs += " " + ctx.args[ctx.paramIndex++];
+	return true;
+}
+
+bool CommandHandler::setLimitMode(Server *server, Client *client, Channel *chan, ModeContext &ctx)
+{
+	if (!ctx.plus)
+	{
+		chan->unsetUserLimit();
+		ctx.applied += "-l";
+		return true;
+	}
+	if (ctx.paramIndex >= ctx.args.size())
+	{
+		server->sendNumericMsg(client, "461", "MODE :Not enough parameters");
+		return true;
+	}
+	chan->setUserLimit(std::atoi(ctx.args[ctx.paramIndex].c_str()));
+	ctx.applied += "+l";
+	ctx.appliedArgs += " " + ctx.args[ctx.paramIndex++];
+	return true;
+}
+
+bool CommandHandler::setOperatorMode(Server *server, Client *client, Channel *chan, ModeContext &ctx)
+{
+	if (ctx.paramIndex >= ctx.args.size())
+	{
+		server->sendNumericMsg(client, "461", "MODE :Not enough parameters");
+		return true;
+	}
+
+	const std::string &targetNick = ctx.args[ctx.paramIndex];
+	Client *target = server->getClientByNick(targetNick);
+
+	if (!target || !chan->getClientByFd(target->getFd()))
+	{
+		server->sendNumericMsg(client, "441", targetNick + " " + ctx.chanName + " :Is not on that channel");
+		ctx.paramIndex++;
+		return true;
+	}
+
+	(ctx.plus ? chan->addOperator(target) : chan->removeOperator(target));
+	ctx.applied += (ctx.plus ? "+o" : "-o");
+	ctx.appliedArgs += " " + ctx.args[ctx.paramIndex++];
+	return true;
+}
+
+bool CommandHandler::setModeChar(Server *server, Client *client, Channel *chan, ModeContext &ctx)
+{
+	switch (ctx.c)
+	{
+		case 'i':
+			setInviteMode(chan, ctx);
+			return true;
+		case 't':
+			setTopicMode(chan, ctx);
+			return true;
+		case 'k':
+			return setPassMode(server, client, chan, ctx);
+		case 'l':
+			return setLimitMode(server, client, chan, ctx);
+		case 'o':
+			return setOperatorMode(server, client, chan, ctx);
 		default:
-			return;
+			server->sendNumericMsg(client, "472", std::string(1, ctx.c) + " : unknown mode char");
+			return false;
 	}
 }
 
 void CommandHandler::MODE(Server *server, Client *client, ArgsList args)
 {
-	
-	std::string chanName = args[0];
-
 	if (args.size() < 2)
 	{
-		server->sendNumericMsg(client, "461", "MODE:Not enough parameters");
+		server->sendNumericMsg(client, "461", "MODE :Not enough parameters");
 		return;
 	}
 
-	if (!client->isRegistered())
-	{
-		server->sendNumericMsg(client, "462", ":You may not reregister");
-		return;
-	}
+	const std::string &chanName = args[0];
+	const std::string &modeString = args[1];
+
 	if (!Channel::isValidChannelName(chanName))
 	{
 		server->sendNumericMsg(client, "403", chanName + " :No such channel");
 		return;
 	}
-	Channel *chan = server->getChannel(chanName);
 
-	if(!chan->isAdmin(client))
+	Channel *chan = server->getChannel(chanName);
+	if (!chan)
+	{
+		server->sendNumericMsg(client, "403", chanName + " :No such channel");
+		return;
+	}
+
+	if (!chan->isAdmin(client))
 	{
 		server->sendNumericMsg(client, "482", chanName + " :You're not channel operator");
 		return;
 	}
-	std::string option[5] = {"i", "t", "k", "o", "l"};
-	char 	ActivationState = '+';
-	size_t actualArg  = 2;
-	for( size_t i= 0 ; i <  args[1].size(); i++)
+
+	ModeContext ctx;
+	ctx.chanName = chanName;
+	ctx.args = args;
+	ctx.plus = true;
+	ctx.paramIndex = 2;
+
+	for (size_t i = 0; i < modeString.size(); i++)
 	{
-		size_t j = 0;
-		for(; j < 5; j++)
-		{
-			if(args[1][i] == option[j][0])
-				break;
-		}
-		if(j == 5 && (args[1][i] == '+' || args[1][i] == '-'))
-		{
-			ActivationState = args[1][i];
-			continue;
-		}
-		else if(j == 5)
-		{
-			server->sendNumericMsg(client, "472", args[1][i] + " : is unkown mode char for me");
-			return;
-		}
-		else if(actualArg >= args.size() && j  >= 2 )
-		{
-			server->sendNumericMsg(client, "461","MODE : Not enought parametres");
-			return ;
-		}
-		if(ActivationState == '+')
-			selectUpMode(j, chan, args, &actualArg);
+		ctx.c = modeString[i];
+
+		if (ctx.c == '+')
+			ctx.plus = true;
+		else if (ctx.c == '-')
+			ctx.plus = false;
 		else
-			selectDownMode(j, chan);
+			if (!setModeChar(server, client, chan, ctx))
+				return;
+	}
+
+	if (!ctx.applied.empty())
+	{
+		std::string modeMsg = ":" + client->getPrefix() + " MODE " + chanName + " " + ctx.applied + ctx.appliedArgs + "\r\n";
+		chan->broadcast(server, modeMsg, client, true);
 	}
 }
 

@@ -11,6 +11,17 @@ class Server;
 
 typedef	const std::vector<std::string> &ArgsList;
 
+struct ModeContext
+{
+	std::string chanName;
+	std::vector<std::string> args;
+	char        c;
+	bool        plus;
+	size_t      paramIndex;
+	std::string applied;
+	std::string appliedArgs;
+};
+
 class CommandHandler
 {
 	public:
@@ -41,6 +52,13 @@ class CommandHandler
 				Client *client, Channel *chan, const std::string &targetNick);
 		static void notifyInvite(Server *server,
 				Client *client, Client *invited, const std::string &chanName);
+
+		static void setInviteMode(Channel *chan, ModeContext &ctx);
+		static void setTopicMode(Channel *chan, ModeContext &ctx);
+		static bool setPassMode(Server *server, Client *client, Channel *chan, ModeContext &ctx);
+		static bool setLimitMode(Server *server, Client *client, Channel *chan, ModeContext &ctx);
+		static bool setOperatorMode(Server *server, Client *client, Channel *chan, ModeContext &ctx);
+		static bool setModeChar(Server *server, Client *client, Channel *chan, ModeContext &ctx);
 
 		static void CAP(Server *server, Client *client, ArgsList args);
 		static void PASS(Server *server, Client *client, ArgsList args);
