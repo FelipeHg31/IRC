@@ -1,5 +1,5 @@
 
-NAME = ft_irc
+NAME = ircserv
 CXX = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes -g3 -MMD -MP
 SRCS =	src/Server.cpp \
