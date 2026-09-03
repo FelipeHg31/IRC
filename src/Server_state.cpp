@@ -62,7 +62,7 @@ static char irc_tolower(char c)
 
 static std::string irc_to_lower(std::string str)
 {
-    for (int i = 0; str[i]; i++)
+    for (size_t i = 0; i < str.size(); i++)
         str[i] = irc_tolower(str[i]);
     return str;
 }
