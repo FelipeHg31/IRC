@@ -34,6 +34,7 @@ void CommandHandler::populateMap()
 	_commands["PART"] = &CommandHandler::PART;
 	_commands["KICK"] = &CommandHandler::KICK;
 	_commands["PRIVMSG"] = &CommandHandler::PRIVMSG;
+	_commands["NOTICE"] = &CommandHandler::NOTICE;
 	_commands["WHO"] = &CommandHandler::WHO;
 	_commands["NAMES"] = &CommandHandler::NAMES;
 	_commands["LIST"] = &CommandHandler::LIST;

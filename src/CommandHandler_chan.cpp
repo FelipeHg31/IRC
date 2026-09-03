@@ -102,9 +102,15 @@ bool CommandHandler::setLimitMode(Server *server, Client *client, Channel *chan,
 		server->sendNumericMsg(client, "461", "MODE :Not enough parameters");
 		return true;
 	}
-	chan->setUserLimit(std::atoi(ctx.args[ctx.paramIndex].c_str()));
-	ctx.applied += "+l";
-	ctx.appliedArgs += " " + ctx.args[ctx.paramIndex++];
+	unsigned int limit = std::atoi(ctx.args[ctx.paramIndex].c_str());
+	chan->setUserLimit(limit);
+	if (limit < 1 || limit > 99)
+		server->sendNumericMsg(client, "472", "MODE : Invalid User Limit (1-99)");
+	else
+	{
+		ctx.applied += "+l";
+		ctx.appliedArgs += " " + ctx.args[ctx.paramIndex++];
+	}
 	return true;
 }
 
@@ -200,7 +206,7 @@ void CommandHandler::MODE(Server *server, Client *client, ArgsList args)
 			ctx.plus = false;
 		else
 			if (!setModeChar(server, client, chan, ctx))
-				return;
+				continue;
 	}
 
 	if (!ctx.applied.empty())

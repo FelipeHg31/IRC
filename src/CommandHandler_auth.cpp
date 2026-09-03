@@ -58,9 +58,13 @@ void CommandHandler::NICK(Server *server, Client *client, ArgsList args)
 			return;
 		}
 	}
-	if (server->getClientByNick(args[0]))
+
+	Client *existing = server->getClientByNick(args[0]); 
+	
+	if (existing)
 	{
-		server->sendNumericMsg(client, "433", args[0] + " :Nickname already in use");
+		if (existing != client)
+			server->sendNumericMsg(client, "433", args[0] + " :Nickname already in use");
 		return;
 	}
 

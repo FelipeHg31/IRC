@@ -47,12 +47,32 @@ void Server::removeChannel(const std::string &name)
 	_channels.erase(it);
 }
 
+static char irc_tolower(char c)
+{
+    switch (c)
+	{
+        case '[': return '{';
+        case ']': return '}';
+        case '\\': return '|';
+        case '~': return '^';
+        default:
+            return static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+}
+
+static std::string irc_to_lower(std::string str)
+{
+    for (int i = 0; str[i]; i++)
+        str[i] = irc_tolower(str[i]);
+    return str;
+}
+
 Client *Server::getClientByNick(const std::string &nick)
 {
 	ClientMap::iterator it;
 	for (it = _clients.begin(); it != _clients.end(); it++)
 	{
-		if (it->second->getNick() == nick)
+		if (irc_to_lower(it->second->getNick()) == irc_to_lower(nick))
 			return it->second;
 	}
 	return NULL;

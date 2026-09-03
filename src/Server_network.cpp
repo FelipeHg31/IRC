@@ -9,46 +9,46 @@ static void handleSigInt(int) { stop_serv = 1; }
 void Server::start()
 {
 	signal(SIGINT, handleSigInt);
-    init();
-    while (!stop_serv)
-    {
-        int ret = poll(&_fds[0], _fds.size(), -1);
-        if (ret < 0)
-            continue;
+	init();
+	while (!stop_serv)
+	{
+		int ret = poll(&_fds[0], _fds.size(), -1);
+		if (ret < 0)
+			continue;
 
-        for (size_t i = 0; i < _fds.size(); i++)
-        {
-            if (_fds[i].revents == 0)
-                continue;
-            handleEvent(i);
-        }
+		for (size_t i = 0; i < _fds.size(); i++)
+		{
+			if (_fds[i].revents == 0)
+				continue;
+			handleEvent(i);
+		}
 		removePendingClients();
-    }
+	}
 }
 
 void Server::handleEvent(size_t i)
 {
-    int fd = _fds[i].fd;
-    short revents = _fds[i].revents;
+	int fd = _fds[i].fd;
+	short revents = _fds[i].revents;
 
-    if (revents & (POLLHUP | POLLERR | POLLNVAL))
-    {
-        _clients[fd]->setToDisconnect();
-        return;
-    }
-    
-    if (fd == _serverSocket)
-    {
-        if (revents & POLLIN)
-            acceptClient();
-        return;
-    }
-    
-    if (revents & POLLIN)
-        handlePollIn(fd);
-        
-    if (revents & POLLOUT)
-        handlePollOut(fd);
+	if (fd == _serverSocket)
+	{
+		if (revents & POLLIN)
+			acceptClient();
+		return;
+	}
+
+	if (revents & (POLLHUP | POLLERR | POLLNVAL))
+	{
+		_clients[fd]->setToDisconnect();
+		return;
+	}
+	
+	if (revents & POLLIN)
+		handlePollIn(fd);
+		
+	if (revents & POLLOUT)
+		handlePollOut(fd);
 }
 
 void Server::acceptClient()
@@ -94,11 +94,9 @@ void Server::handlePollIn(int fd)
 	Client *client = _clients[fd];
 	client->getInBuf() += buffer;
 
-	if (client->getInBuf().size() > 512
-		&& client->getInBuf().find("\n") == std::string::npos)
+	if (client->getInBuf().size() > 4096)
 	{
-		client->getInBuf().clear();
-		sendNumericMsg(client, "417", ":Input line was too long");
+		client->setToDisconnect("Emergency Kick!");
 		return;
 	}
 
@@ -107,62 +105,68 @@ void Server::handlePollIn(int fd)
 
 void Server::processClientBuffer(Client *client)
 {
-    size_t pos;
-    while ((pos = client->getInBuf().find("\n")) != std::string::npos)
-    {
-        std::string cmd = client->getInBuf().substr(0, pos);
-        client->getInBuf().erase(0, pos + 1);
-        
-        if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
-            cmd.erase(cmd.size() - 1);
-            
-        Message p_cmd(cmd);
-        _cmdHandler.execute(p_cmd.getCmd(), this, client, p_cmd.getArgs());
-    }
+	size_t pos;
+	while ((pos = client->getInBuf().find("\n")) != std::string::npos)
+	{
+		std::string cmd = client->getInBuf().substr(0, pos);
+		client->getInBuf().erase(0, pos + 1);
+		
+		if (!cmd.empty() && cmd[cmd.size() - 1] == '\r')
+			cmd.erase(cmd.size() - 1);
+
+		if (cmd.size() > 510)
+		{
+			sendNumericMsg(client, "417", ": Input line was too long");
+			continue;
+		}
+			
+		Message p_cmd(cmd);
+		_cmdHandler.execute(p_cmd.getCmd(), this, client, p_cmd.getArgs());
+	}
 }
 
 void Server::handlePollOut(int fd)
 {
-    Client *client = _clients[fd];
-    int bytesSent = send(fd, client->getOutBuf().c_str(),
+	Client *client = _clients[fd];
+	int bytesSent = send(fd, client->getOutBuf().c_str(),
 							client->getOutBuf().size(), 0);
 
-    if (bytesSent < 0)
-    {
+	if (bytesSent < 0)
+	{
 		client->setToDisconnect();
-        return;
-    }
+		return;
+	}
 
-    client->getOutBuf().erase(0, bytesSent);
+	client->getOutBuf().erase(0, bytesSent);
 
-    if (client->getOutBuf().empty())
+	if (client->getOutBuf().empty())
 		disablePollOut(fd);
 }
 
 void Server::disablePollOut(int fd)
 {
-    for (size_t i = 0; i < _fds.size(); i++)
-    {
-        if (_fds[i].fd == fd)
-        {
-            _fds[i].events &= ~POLLOUT;
-            break;
-        }
-    }
+	for (size_t i = 0; i < _fds.size(); i++)
+	{
+		if (_fds[i].fd == fd)
+		{
+			_fds[i].events &= ~POLLOUT;
+			break;
+		}
+	}
 }
 
 void Server::removeFromPoll(int fd)
 {
 	std::vector<pollfd>::iterator it;
 
-    for (it = _fds.begin(); it != _fds.end(); ++it)
-    {
-        if (it->fd == fd)
-        {
-            _fds.erase(it);
-            break;
-        }
-    }
+	for (it = _fds.begin(); it != _fds.end(); ++it)
+	{
+		if (it->fd == fd)
+		{
+			_fds.erase(it);
+			break;
+		}
+	}
 }
 
 void Server::removePendingClients()
