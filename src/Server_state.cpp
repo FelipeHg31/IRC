@@ -49,22 +49,22 @@ void Server::removeChannel(const std::string &name)
 
 static char irc_tolower(char c)
 {
-    switch (c)
+	switch (c)
 	{
-        case '[': return '{';
-        case ']': return '}';
-        case '\\': return '|';
-        case '~': return '^';
-        default:
-            return static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-    }
+		case '[': return '{';
+		case ']': return '}';
+		case '\\': return '|';
+		case '~': return '^';
+		default:
+			return static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	}
 }
 
 static std::string irc_to_lower(std::string str)
 {
-    for (size_t i = 0; i < str.size(); i++)
-        str[i] = irc_tolower(str[i]);
-    return str;
+	for (size_t i = 0; i < str.size(); i++)
+		str[i] = irc_tolower(str[i]);
+	return str;
 }
 
 Client *Server::getClientByNick(const std::string &nick)
