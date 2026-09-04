@@ -12,7 +12,7 @@ void Server::start()
 	init();
 	while (!stop_serv)
 	{
-		int ret = poll(&_fds[0], _fds.size(), -1);
+		int ret = poll(&_fds[0], _fds.size(), 1000);
 		if (ret < 0)
 			continue;
 

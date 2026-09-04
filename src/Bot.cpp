@@ -13,20 +13,22 @@ void Bot::startPoll(const std::string &command, ArgsList args, const std::string
 		return;
 
 	_activePoll = new Poll();
+	_activePoll->score = 0;
 	_activePoll->command = command;
 	_activePoll->args = args;
 	_activePoll->initiator = initiator;
 	_activePoll->startTime = std::time(NULL);
 }
 
-bool Bot::vote(Client *voter, bool positive)
+bool Bot::vote(Client *voter, bool yes)
 {
 	if (!isPollActive())
 		return false;
-	if (_activePoll->votes.find(voter) != _activePoll->votes.end())
+	if (_activePoll->voters.find(voter) != _activePoll->voters.end())
 		return false;
-
-	_activePoll->votes[voter] = positive ? 1 : -1;
+	_activePoll->voters.insert(voter);
+	if (yes)
+		_activePoll->score++;
 	return true;
 }
 
@@ -34,5 +36,5 @@ void Bot::removeVoter(Client *client)
 {
 	if (!isPollActive())
 		return;
-	_activePoll->votes.erase(client);
+	_activePoll->voters.erase(client);
 }

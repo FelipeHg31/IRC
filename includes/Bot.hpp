@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <ctime>
-#include <map>
+#include <set>
 #include <vector>
 
 typedef const std::vector<std::string> &ArgsList;
@@ -11,10 +11,11 @@ class Client;
 
 struct Poll
 {
+	int	score;
 	std::string command;
 	std::vector<std::string> args;
 	std::string initiator;
-	std::map<Client *, int> votes;
+	std::set<Client *> voters;
 	std::time_t startTime;
 };
 
@@ -24,7 +25,7 @@ class Bot
 		Bot(Client *botClient);
 		~Bot();
 
-		void startPoll(const std::string &cmd, ArgsList args, const std::string &initiator);
+		void startPoll(const std::string &command, ArgsList args, const std::string &initiator);
 		bool vote(Client *voter, bool yes);
 		bool isPollActive() const;
 		void removeVoter(Client *client);
