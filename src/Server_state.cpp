@@ -32,7 +32,7 @@ Channel *Server::getChannel(const std::string &name)
 
 Channel *Server::addNewChannel(const std::string &name, Client *admin)
 {
-	Channel	*out = new Channel(name, admin);
+	Channel	*out = new Channel(name, admin, _botClient);
 	_channels[name] = out;
 
 	return out;
@@ -60,7 +60,7 @@ static char irc_tolower(char c)
 	}
 }
 
-static std::string irc_to_lower(std::string str)
+std::string Server::irc_to_lower(std::string str)
 {
 	for (size_t i = 0; i < str.size(); i++)
 		str[i] = irc_tolower(str[i]);

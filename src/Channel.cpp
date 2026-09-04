@@ -5,11 +5,12 @@
 #include <sys/socket.h>
 #include <iostream>
 
-Channel::Channel(const std::string &name, Client *admin) : _name(name), _topic(""), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0)
+Channel::Channel(const std::string &name, Client *admin, Client *bot) : _name(name), _topic(""), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0)
 {
-	if (!admin)
+	if (!admin || !bot)
 		throw std::runtime_error("Something broke.");
 	_operators.insert(admin);
+	_bot = bot;
 }
 
 Channel::~Channel() {}

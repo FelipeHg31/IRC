@@ -16,6 +16,7 @@ private:
 	std::set<Client *>	_operators;
 	std::vector<Client *> _clients;
 	std::set<Client*> _invited;
+	Client *_bot;
 	bool _inviteMode;
 	bool _passwordMode;
 	bool _topicLocked;
@@ -24,7 +25,7 @@ private:
 	Channel(const Channel &rhs);
 	Channel &operator=(const Channel &rhs);
 public:
-	Channel(const std::string &name, Client *admin);
+	Channel(const std::string &name, Client *admin, Client *bot);
 	~Channel();
 	void setTopic(const std::string& topic);
 	void	addOperator(Client *client);

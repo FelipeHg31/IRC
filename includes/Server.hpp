@@ -32,6 +32,8 @@ class Server
 		const std::string &getName() const;
 		const std::string &getCreationDate() const;
 
+		static std::string irc_to_lower(std::string str);
+
 		void start();
 		
 		void tryRegistration(Client *client);		
@@ -70,6 +72,7 @@ class Server
 		FdVector	_fds; 
 		std::string	_password;
 		std::string	_creationDate;
+		Client		*_botClient;
 		ClientMap	_clients;
 		ChannelMap	_channels;
 

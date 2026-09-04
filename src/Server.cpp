@@ -6,6 +6,11 @@ Server::Server(int port, const std::string &password, const std::string &name): 
 		throw(NoValidServer("Bad port"));
 	if(name.empty())
 		throw(NoValidServer("Bad name"));
+	_botClient = new Client(-1);
+	_botClient->setNick("Bot");
+	_botClient->setUser("UserBot");
+	_botClient->setRnam("RealBot");
+	_botClient->setHost("HostBot");
 	std::time_t now = std::time(NULL);
 	_creationDate = std::asctime(std::localtime(&now));
 	if (!_creationDate.empty() && _creationDate[_creationDate.size() - 1] == '\n')
@@ -28,6 +33,8 @@ Server::~Server()
 
 	if (_serverSocket >= 0)
 		close(_serverSocket);
+
+	delete _botClient;
 }
 
 void Server::init()

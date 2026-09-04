@@ -45,7 +45,7 @@ void CommandHandler::NICK(Server *server, Client *client, ArgsList args)
 		server->sendNumericMsg(client, "431", ":No nickname given");
 		return;
 	}
-	if (args[0].size() > 9)
+	if (args[0].size() > 9 || Server::irc_to_lower(args[0]) == "bot")
 	{
 		server->sendNumericMsg(client, "432", args[0] + " :Invalid nickname");
 		return;
