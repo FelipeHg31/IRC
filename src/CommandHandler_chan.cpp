@@ -47,7 +47,7 @@ void CommandHandler::JOIN(Server *server, Client *client, ArgsList args)
 	else
 		server->sendNumericMsg(client, "332", chanName + " :" + chan->getTopic());
 
-	server->sendNumericMsg(client, "353", "= " + chanName + " :" + chan->getMembers());
+	server->sendNumericMsg(client, "353", "= " + chanName + " :@" + Bot::getBotName() + " " + chan->getMembers());
 	server->sendNumericMsg(client, "366", chanName + " :End of /NAMES list");
 }
 

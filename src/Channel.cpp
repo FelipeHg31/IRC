@@ -4,11 +4,12 @@
 #include <sys/socket.h>
 #include <iostream>
 
-Channel::Channel(const std::string &name, Client *admin, Client *bot) : _name(name), _topic(""), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0), _botClient(bot), _bot(bot)
+Channel::Channel(const std::string &name, Client *admin, Client *bot) : _name(name), _topic(""), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0), _botClient(bot), _bot(bot), _pendingDelete(false)
 {
 	if (!admin || !bot)
 		throw std::runtime_error("Something broke.");
 	_operators.insert(admin);
+	_operators.insert(bot);
 }
 
 Channel::~Channel() {}
@@ -19,6 +20,12 @@ const std::string &Channel::getName() const
 }
 
 const std::string &Channel::getPassword() const { return _password; }
+
+Bot &Channel::getBot() { return _bot; }
+
+bool Channel::isPendingDelete() const { return _pendingDelete; }
+
+void Channel::setToDelete() { _pendingDelete = true; }
 
 void Channel::setPassword(const std::string &password) { _password = password; }
 

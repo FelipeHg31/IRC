@@ -80,4 +80,6 @@ class CommandHandler
 		static void NAMES(Server *server, Client *client, ArgsList args);
 		static void LIST(Server *server, Client *client, ArgsList args);
 		static void PING(Server *server, Client *client, ArgsList args);
+
+		static void KIM(Server *server, Client *client, ArgsList args);
 };

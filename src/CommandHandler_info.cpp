@@ -51,7 +51,7 @@ void CommandHandler::NAMES(Server *server, Client *client, ArgsList args)
 		return;
 	}
 
-	server->sendNumericMsg(client, "353", "= " + chanName + " :" + chan->getMembers());
+	server->sendNumericMsg(client, "353", "= " + chanName + " :@" + Bot::getBotName() + " " + chan->getMembers());
 	server->sendNumericMsg(client, "366", chanName + " :End of /NAMES list");
 }
 

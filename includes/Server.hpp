@@ -30,6 +30,7 @@ class Server
 		~Server();
 		const std::string &getPass() const;
 		const std::string &getName() const;
+		Client *getBot();
 		const std::string &getCreationDate() const;
 
 		static std::string irc_to_lower(std::string str);
@@ -81,11 +82,13 @@ class Server
 		void init();
 
 		void acceptClient();
+		void checkPolls();
 		void handlePollIn(int fd);
 		void handlePollOut(int fd);
 		void disablePollOut(int fd);
 		void removeFromPoll(int fd);
 		void removePendingClients();
+		void removePendingChannels();
 		void processClientBuffer(Client *client);
 		void handleEvent(size_t i);
 		std::string resolveHost(int fd);

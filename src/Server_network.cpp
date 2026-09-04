@@ -23,6 +23,7 @@ void Server::start()
 			handleEvent(i);
 		}
 		removePendingClients();
+		checkPolls();
 	}
 }
 

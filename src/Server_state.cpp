@@ -40,11 +40,24 @@ Channel *Server::addNewChannel(const std::string &name, Client *admin)
 
 void Server::removeChannel(const std::string &name)
 {
-	ChannelMap::iterator it = _channels.find(name);
-	if (it == _channels.end())
-		return;
-	delete it->second;
-	_channels.erase(it);
+	Channel *chan = getChannel(name);
+	if (chan)
+		chan->setToDelete();
+}
+
+void Server::removePendingChannels()
+{
+	ChannelMap::iterator it = _channels.begin();
+	while (it != _channels.end())
+	{
+		if (it->second->isPendingDelete())
+		{
+			delete it->second;
+			_channels.erase(it++);
+		}
+		else
+			it++;
+	}
 }
 
 static char irc_tolower(char c)
@@ -76,4 +89,35 @@ Client *Server::getClientByNick(const std::string &nick)
 			return it->second;
 	}
 	return NULL;
+}
+
+void Server::checkPolls()
+{
+	ChannelMap::iterator it;
+	for (it = _channels.begin(); it != _channels.end(); it++)
+	{
+		Channel *chan = it->second;
+		std::string cmd;
+		std::vector<std::string> args;
+
+		Bot::PollResult res = chan->getBot().checkVoteTimeout(
+			chan->getClients().size(), cmd, args);
+
+		if (res == Bot::POLL_PASSED)
+		{
+			std::string notice = ":" + _botClient->getPrefix()
+				+ " NOTICE " + chan->getName() + " :Vote passed, executing " + cmd + "\r\n";
+			chan->broadcast(this, notice, NULL, true);
+
+			_cmdHandler.execute(cmd, this, _botClient, args);
+			_botClient->getOutBuf().clear();
+		}
+		else if (res == Bot::POLL_FAILED)
+		{
+			std::string notice = ":" + _botClient->getPrefix()
+				+ " NOTICE " + chan->getName() + " :Vote failed\r\n";
+			chan->broadcast(this, notice, NULL, true);
+		}
+	}
+	removePendingChannels();
 }

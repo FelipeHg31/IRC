@@ -23,6 +23,7 @@ private:
 	unsigned int	_userLimit;
 	Client *_botClient;
 	Bot		_bot;
+	bool	_pendingDelete;
 	Channel();
 	Channel(const Channel &rhs);
 	Channel &operator=(const Channel &rhs);
@@ -34,6 +35,9 @@ public:
 	void	removeOperator(Client *client);
 	const std::string &getName() const;
 	const std::string &getPassword() const;
+	Bot &getBot();
+	bool isPendingDelete() const;
+	void setToDelete();
 	unsigned int getUserLimit() const;
 	void setUserLimit(int limit);
 	void unsetUserLimit();

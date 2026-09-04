@@ -39,6 +39,7 @@ void CommandHandler::populateMap()
 	_commands["NAMES"] = &CommandHandler::NAMES;
 	_commands["LIST"] = &CommandHandler::LIST;
 	_commands["PING"] =	&CommandHandler::PING;
+	_commands["KIM"] =	&CommandHandler::KIM;
 }
 
 void CommandHandler::populatePreRegCmds()

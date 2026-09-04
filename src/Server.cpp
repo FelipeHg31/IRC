@@ -6,11 +6,13 @@ Server::Server(int port, const std::string &password, const std::string &name): 
 		throw(NoValidServer("Bad port"));
 	if(name.empty())
 		throw(NoValidServer("Bad name"));
+	std::string botName = Bot::getBotName();
 	_botClient = new Client(-1);
-	_botClient->setNick("Bot");
-	_botClient->setUser("UserBot");
-	_botClient->setRnam("RealBot");
-	_botClient->setHost("HostBot");
+	_botClient->setNick(botName);
+	_botClient->setUser(botName);
+	_botClient->setRnam(botName);
+	_botClient->setHost(botName);
+	_botClient->setRegistered();
 	std::time_t now = std::time(NULL);
 	_creationDate = std::asctime(std::localtime(&now));
 	if (!_creationDate.empty() && _creationDate[_creationDate.size() - 1] == '\n')
@@ -64,3 +66,5 @@ void Server::init()
 const std::string &Server::getPass() const { return _password; }
 
 const std::string &Server::getName() const { return _name; }
+
+Client *Server::getBot() { return _botClient; }

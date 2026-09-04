@@ -12,6 +12,7 @@ SRCS =	src/Server.cpp \
 		src/Bot.cpp \
 		src/CommandHandler.cpp \
 		src/CommandHandler_auth.cpp \
+		src/CommandHandler_bot.cpp \
 		src/CommandHandler_chan.cpp \
 		src/CommandHandler_msg.cpp \
 		src/CommandHandler_info.cpp \

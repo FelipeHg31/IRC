@@ -30,6 +30,13 @@ static void sendToClient(Server* server, Client *client, ArgsList args, bool not
 	const std::string &target = args[0];
 	const std::string cmdName = notice ? "NOTICE" : "PRIVMSG";
 
+	if (Server::irc_to_lower(target) == Server::irc_to_lower(server->getBot()->getNick()))
+	{
+		server->queueMessage(client, ":" + server->getBot()->getPrefix()
+			+ " NOTICE " + client->getTarget() + " :for help try KIM HELP\r\n");
+		return;
+	}
+
 	Client *clientTarget = server->getClientByNick(target);
 	if(!clientTarget)
 	{
