@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <Client.hpp>
+#include <Bot.hpp>
 
 class Server;
 
@@ -16,11 +17,12 @@ private:
 	std::set<Client *>	_operators;
 	std::vector<Client *> _clients;
 	std::set<Client*> _invited;
-	Client *_bot;
 	bool _inviteMode;
 	bool _passwordMode;
 	bool _topicLocked;
 	unsigned int	_userLimit;
+	Client *_botClient;
+	Bot		_bot;
 	Channel();
 	Channel(const Channel &rhs);
 	Channel &operator=(const Channel &rhs);

@@ -9,6 +9,7 @@ SRCS =	src/Server.cpp \
 		src/Client.cpp \
 		src/Channel.cpp \
 		src/Message.cpp \
+		src/Bot.cpp \
 		src/CommandHandler.cpp \
 		src/CommandHandler_auth.cpp \
 		src/CommandHandler_chan.cpp \

@@ -1,16 +1,14 @@
-
 #include <Channel.hpp>
 #include <Server.hpp>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <iostream>
 
-Channel::Channel(const std::string &name, Client *admin, Client *bot) : _name(name), _topic(""), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0)
+Channel::Channel(const std::string &name, Client *admin, Client *bot) : _name(name), _topic(""), _inviteMode(false), _passwordMode(false), _topicLocked(false), _userLimit(0), _botClient(bot), _bot(bot)
 {
 	if (!admin || !bot)
 		throw std::runtime_error("Something broke.");
 	_operators.insert(admin);
-	_bot = bot;
 }
 
 Channel::~Channel() {}
@@ -86,6 +84,7 @@ void Channel::removeClient(Client *client)
 	{
 		if (*it == client)
 		{
+			_bot.removeVoter(*it);
 			_clients.erase(it);
 			break;
 		}
