@@ -124,6 +124,7 @@ Client *Channel::getInvitedbyFd(int fd) const
 	}
 	return(NULL);
 }
+
 Client *Channel::getClientByFd(int fd) const
 {
 	std::vector<Client *>::const_iterator it;
@@ -134,6 +135,18 @@ Client *Channel::getClientByFd(int fd) const
 	}
 	return NULL;
 }
+
+Client *Channel::getClientByNick(const std::string &nick) const
+{
+	std::vector<Client *>::const_iterator it;
+	for (it = _clients.begin(); it != _clients.end(); it++)
+	{
+		if ((*it)->getNick() == nick)
+			return *it;
+	}
+	return NULL;
+}
+
 void Channel::broadcast(Server *server, const std::string &msg, Client *sender, bool toAll)
 {
 	std::vector<Client *>::iterator it;

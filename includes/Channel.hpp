@@ -52,6 +52,7 @@ public:
 	std::vector<Client *> &getClients();
 	std::string	getMembers() const;
 	Client *getClientByFd(int fd) const;
+	Client *getClientByNick(const std::string &nick) const;
 	Client *getInvitedbyFd(int fd) const;
 	void  Inviteclient(Client* other);
 	void  RemoveInvite(Client* other);

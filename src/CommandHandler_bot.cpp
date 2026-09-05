@@ -48,6 +48,12 @@ static void startKickPoll(Server *server, Client *client, Channel *chan, const s
 		return;
 	}
 
+	if (!chan->getClientByNick(args[2]))
+	{
+		server->sendNumericMsg(client, "666", chanName + " :No such user");
+		return;		
+	}
+
 	std::vector<std::string> kickArgs;
 	kickArgs.push_back(chanName);
 	kickArgs.push_back(args[2]);
@@ -64,6 +70,12 @@ static void startModePoll(Server *server, Client *client, Channel *chan, const s
 	{
 		server->sendNumericMsg(client, "666", chanName + " :A vote is already in progress");
 		return;
+	}
+
+	if (!chan->getClientByNick(args[2]))
+	{
+		server->sendNumericMsg(client, "666", chanName + " :Can't start vote, no such user");
+		return;		
 	}
 
 	std::vector<std::string> modeArgs;
