@@ -71,8 +71,17 @@ void CommandHandler::NICK(Server *server, Client *client, ArgsList args)
 	std::string oldNick = client->getNick();
 	client->setNick(args[0]);
 
+	ChannelSet &chans = client->getChannels();
+	ChannelSet::iterator chIt;
+	for (chIt = chans.begin(); chIt != chans.end(); chIt++)
+	{
+	    Bot &bot = (*chIt)->getBot();
+	    if (bot.isPollActive() && bot.isTargetNick(oldNick))
+	        bot.renameTarget(args[0]);
+	}
+	
 	if (client->isRegistered())
-		announceNickChange(server, client, oldNick, args[0]);
+	    announceNickChange(server, client, oldNick, args[0]);
 
 	server->tryRegistration(client);
 }

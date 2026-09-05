@@ -41,6 +41,8 @@ class Bot
 		~Bot();
 
 		static unsigned int getPollTimeout();
+		bool isTargetNick(const std::string &nick) const;
+		void renameTarget(const std::string &newNick);
 
 		void startPoll(const std::string &command, ArgsList args, const std::string &initiator);
 		bool vote(Client *voter, bool yes);

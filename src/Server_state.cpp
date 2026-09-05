@@ -108,8 +108,17 @@ void Server::checkPolls()
 			std::string notice = ":" + _botClient->getPrefix()
 				+ " NOTICE " + chan->getName() + " :Vote passed, executing " + cmd + "\r\n";
 			chan->broadcast(this, notice, NULL, true);
-
+				
+			_botClient->getOutBuf().clear();   // scarta eventuali NOTICE orfane (es. da /msg al bot)
 			_cmdHandler.execute(cmd, this, _botClient, args);
+				
+			if (!_botClient->getOutBuf().empty())
+			{
+				std::string failNotice = ":" + _botClient->getPrefix()
+					+ " NOTICE " + chan->getName()
+					+ " :Vote failed (user left channel or disconnected before vote end)\r\n";
+				chan->broadcast(this, failNotice, NULL, true);
+			}
 			_botClient->getOutBuf().clear();
 		}
 		else if (res == Bot::POLL_FAILED)

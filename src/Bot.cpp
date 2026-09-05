@@ -1,5 +1,6 @@
 #include <Bot.hpp>
 #include <Client.hpp>
+#include <Server.hpp>
 
 const std::string Bot::BOT_NAME = "KimJongBot";
 
@@ -10,6 +11,19 @@ Bot::~Bot() { delete _activePoll; }
 bool Bot::isPollActive() const { return _activePoll != NULL; }
 
 unsigned int Bot::getPollTimeout() { return POLL_DURATION; }
+
+bool Bot::isTargetNick(const std::string &nick) const
+{
+	if (!isPollActive() || _activePoll->args.empty())
+		return false;
+	return Server::irc_to_lower(_activePoll->args.back()) == Server::irc_to_lower(nick);
+}
+
+void Bot::renameTarget(const std::string &newNick)
+{
+	if (isPollActive() && !_activePoll->args.empty())
+		_activePoll->args.back() = newNick;
+}
 
 std::string Bot::getBotName() { return Bot::BOT_NAME; }
 
@@ -28,20 +42,20 @@ void Bot::startPoll(const std::string &command, ArgsList args, const std::string
 
 Bot::PollStatus Bot::getStatus() const
 {
-    PollStatus s;
-    s.active = isPollActive();
-    if (!s.active)
-        return s;
+	PollStatus s;
+	s.active = isPollActive();
+	if (!s.active)
+		return s;
 
-    s.command = _activePoll->command;
-    s.target = _activePoll->args.empty() ? "" : _activePoll->args.back();
-    s.score = _activePoll->score;
+	s.command = _activePoll->command;
+	s.target = _activePoll->args.empty() ? "" : _activePoll->args.back();
+	s.score = _activePoll->score;
 
-    std::time_t elapsed = std::time(NULL) - _activePoll->startTime;
-    int remaining = POLL_DURATION - static_cast<int>(elapsed);
-    s.secondsLeft = remaining > 0 ? remaining : 0;
+	std::time_t elapsed = std::time(NULL) - _activePoll->startTime;
+	int remaining = POLL_DURATION - static_cast<int>(elapsed);
+	s.secondsLeft = remaining > 0 ? remaining : 0;
 
-    return s;
+	return s;
 }
 
 bool Bot::vote(Client *voter, bool yes)
@@ -90,11 +104,11 @@ Bot::PollResult Bot::checkVoteTimeout(size_t members, std::string &cmdOut, std::
 
 int Bot::getRemainingTime() const
 {
-    if (!isPollActive())
-        return -1;
-    std::time_t elapsed = std::time(NULL) - _activePoll->startTime;
-    int remainingSec = POLL_DURATION - static_cast<int>(elapsed);
-    if (remainingSec <= 0)
-        return 0;
-    return remainingSec * 1000;
+	if (!isPollActive())
+		return -1;
+	std::time_t elapsed = std::time(NULL) - _activePoll->startTime;
+	int remainingSec = POLL_DURATION - static_cast<int>(elapsed);
+	if (remainingSec <= 0)
+		return 0;
+	return remainingSec * 1000;
 }

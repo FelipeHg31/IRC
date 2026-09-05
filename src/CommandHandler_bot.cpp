@@ -72,7 +72,7 @@ static void startModePoll(Server *server, Client *client, Channel *chan, const s
 	modeArgs.push_back(args[2]);
 
 	chan->getBot().startPoll("MODE", modeArgs, client->getNick());
-	announcePollStart(server, chan, "KICK", args[2], client->getNick());
+	announcePollStart(server, chan, promote ? "PROMOTE" : "DEMOTE", args[2], client->getNick());
 }
 
 static void castVote(Server *server, Client *client, Channel *chan, bool positive)
