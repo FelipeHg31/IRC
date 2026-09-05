@@ -109,7 +109,7 @@ void Server::checkPolls()
 				+ " NOTICE " + chan->getName() + " :Vote passed, executing " + cmd + "\r\n";
 			chan->broadcast(this, notice, NULL, true);
 				
-			_botClient->getOutBuf().clear();   // scarta eventuali NOTICE orfane (es. da /msg al bot)
+			_botClient->getOutBuf().clear();
 			_cmdHandler.execute(cmd, this, _botClient, args);
 				
 			if (!_botClient->getOutBuf().empty())
