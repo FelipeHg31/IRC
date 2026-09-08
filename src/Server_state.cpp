@@ -15,7 +15,7 @@ void Server::tryRegistration(Client	*client)
 	sendNumericMsg(client, "002", ":Tu host es " + _name
 		+ ", ejectuando version 1.0");
 	sendNumericMsg(client, "003", ":Este servidor se creó " + _creationDate);
-	sendNumericMsg(client, "004", "CONECTADO! YABBADABBADOOO!");
+	sendNumericMsg(client, "004", "KimJongBot es el lider supremo de cada canal, aprende a usarlo con KIM HELP");
 }
 
 const ChannelMap &Server::getChannels() const { return _channels; }
