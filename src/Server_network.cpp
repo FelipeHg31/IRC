@@ -64,6 +64,7 @@ void Server::acceptClient()
 	if (fcntl(clientFd, F_SETFL, O_NONBLOCK) < 0)
 	{
 		std::cerr << "Error: fcntl() failed" << std::endl;
+		close(clientFd);
 		return;
 	}
 

@@ -1,6 +1,6 @@
 #include <Server.hpp>
 
-Server::Server(int port, const std::string &password, const std::string &name): _port(port), _name(name), _password(password)
+Server::Server(int port, const std::string &password, const std::string &name): _port(port), _serverSocket(-1), _name(name), _password(password)
 {
 	if(port < 1024 || port > 49151)
 		throw(NoValidServer("Bad port"));
@@ -42,6 +42,9 @@ Server::~Server()
 void Server::init()
 {
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+	int opt = 1;
+	setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	sockaddr_in addr;
 	std::memset(&addr, 0, sizeof(addr));
