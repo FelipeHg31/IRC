@@ -101,14 +101,3 @@ Bot::PollResult Bot::checkVoteTimeout(size_t members, std::string &cmdOut, std::
 
 	return passed ? POLL_PASSED : POLL_FAILED;
 }
-
-int Bot::getRemainingTime() const
-{
-	if (!isPollActive())
-		return -1;
-	std::time_t elapsed = std::time(NULL) - _activePoll->startTime;
-	int remainingSec = POLL_DURATION - static_cast<int>(elapsed);
-	if (remainingSec <= 0)
-		return 0;
-	return remainingSec * 1000;
-}

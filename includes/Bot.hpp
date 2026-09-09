@@ -48,7 +48,6 @@ class Bot
 		bool vote(Client *voter, bool yes);
 		bool isPollActive() const;
 		PollStatus getStatus() const;
-		int getRemainingTime() const;
 		void removeVoter(Client *client);
 		PollResult checkVoteTimeout(size_t members, std::string &cmdOut, std::vector<std::string> &args);
 		static std::string getBotName();

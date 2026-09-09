@@ -42,9 +42,6 @@ fclean: clean
 
 re: fclean all
 
-run: all
-	@./$(NAME)
-
 -include $(DEPS)
 
 .PHONY: all clean fclean re
